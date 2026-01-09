@@ -18,22 +18,81 @@ struct GanttChartHeader: View {
         return dates
     }
 
-    var body: some View {
-        HStack(spacing: 0) {
-            // Empty space for label column
-            Color.clear
-                .frame(width: configuration.labelColumnWidth)
+    private var weekGroups: [(date: Date, dayCount: Int)] {
+        var groups: [(Date, Int)] = []
+        var currentWeekStart: Date?
+        var currentCount = 0
 
-            // Date columns
-            ForEach(days, id: \.self) { date in
-                DateColumnHeader(date: date, configuration: configuration)
+        for day in days {
+            let weekOfYear = calendar.component(.weekOfYear, from: day)
+            let year = calendar.component(.yearForWeekOfYear, from: day)
+
+            if let start = currentWeekStart {
+                let startWeek = calendar.component(.weekOfYear, from: start)
+                let startYear = calendar.component(.yearForWeekOfYear, from: start)
+
+                if weekOfYear == startWeek && year == startYear {
+                    currentCount += 1
+                } else {
+                    groups.append((start, currentCount))
+                    currentWeekStart = day
+                    currentCount = 1
+                }
+            } else {
+                currentWeekStart = day
+                currentCount = 1
             }
         }
-        .frame(height: 50)
+
+        if let start = currentWeekStart, currentCount > 0 {
+            groups.append((start, currentCount))
+        }
+
+        return groups
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Week groups row
+            HStack(spacing: 0) {
+                ForEach(weekGroups, id: \.date) { group in
+                    WeekGroupHeader(date: group.date, configuration: configuration)
+                        .frame(width: CGFloat(group.dayCount) * configuration.dayColumnWidth)
+                }
+            }
+            .frame(height: configuration.headerHeight * 0.5)
+
+            // Day numbers row
+            HStack(spacing: 0) {
+                ForEach(days, id: \.self) { date in
+                    DayColumnHeader(date: date, configuration: configuration)
+                }
+            }
+            .frame(height: configuration.headerHeight * 0.5)
+        }
     }
 }
 
-private struct DateColumnHeader: View {
+private struct WeekGroupHeader: View {
+    let date: Date
+    let configuration: GanttChartConfiguration
+
+    private var weekLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy MMMM d"
+        return formatter.string(from: date)
+    }
+
+    var body: some View {
+        Text(weekLabel)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 4)
+    }
+}
+
+private struct DayColumnHeader: View {
     let date: Date
     let configuration: GanttChartConfiguration
 
@@ -43,12 +102,9 @@ private struct DateColumnHeader: View {
         calendar.isDateInToday(date)
     }
 
-    private var isFirstDayOfMonth: Bool {
-        calendar.component(.day, from: date) == 1
-    }
-
-    private var isMonday: Bool {
-        calendar.component(.weekday, from: date) == 2
+    private var isWeekend: Bool {
+        let weekday = calendar.component(.weekday, from: date)
+        return weekday == 1 || weekday == 7
     }
 
     private var dayNumber: String {
@@ -57,38 +113,23 @@ private struct DateColumnHeader: View {
         return formatter.string(from: date)
     }
 
-    private var dayOfWeek: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date)
-    }
-
-    private var monthName: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM"
-        return formatter.string(from: date)
-    }
-
     var body: some View {
-        VStack(spacing: 2) {
-            if isFirstDayOfMonth || isMonday {
-                Text(isFirstDayOfMonth ? monthName : "")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("")
-                    .font(.caption2)
+        ZStack {
+            if isWeekend && configuration.showWeekendHighlight {
+                configuration.weekendColor
+            }
+
+            if isToday && configuration.showTodayMarker {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(configuration.todayMarkerColor)
+                    .padding(2)
             }
 
             Text(dayNumber)
-                .font(.caption)
-                .fontWeight(isToday ? .bold : .regular)
-
-            Text(dayOfWeek)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .fontWeight(isToday ? .bold : .regular)
+                .foregroundStyle(isToday ? .white : (isWeekend ? .secondary : .primary))
         }
         .frame(width: configuration.dayColumnWidth)
-        .background(isToday ? configuration.todayMarkerColor.opacity(0.1) : Color.clear)
     }
 }

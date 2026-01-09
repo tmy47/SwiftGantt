@@ -27,24 +27,53 @@ struct GanttChartGrid: View {
 
     var body: some View {
         Canvas { context, size in
-            let chartStartX = configuration.labelColumnWidth
             let totalHeight = CGFloat(rowCount) * configuration.rowHeight
+
+            // Weekend shading
+            if configuration.showWeekendHighlight {
+                for (index, date) in days.enumerated() {
+                    let weekday = calendar.component(.weekday, from: date)
+                    let isWeekend = weekday == 1 || weekday == 7
+
+                    if isWeekend {
+                        let x = CGFloat(index) * configuration.dayColumnWidth
+                        let rect = CGRect(
+                            x: x,
+                            y: 0,
+                            width: configuration.dayColumnWidth,
+                            height: totalHeight
+                        )
+                        context.fill(Path(rect), with: .color(configuration.weekendColor))
+                    }
+                }
+            }
+
+            // Today column highlight
+            if configuration.showTodayMarker {
+                for (index, date) in days.enumerated() {
+                    if calendar.isDateInToday(date) {
+                        let x = CGFloat(index) * configuration.dayColumnWidth
+                        let rect = CGRect(
+                            x: x,
+                            y: 0,
+                            width: configuration.dayColumnWidth,
+                            height: totalHeight
+                        )
+                        context.fill(Path(rect), with: .color(configuration.todayMarkerColor.opacity(0.1)))
+                    }
+                }
+            }
 
             // Vertical grid lines
             if configuration.showVerticalGrid {
-                for (index, date) in days.enumerated() {
-                    let x = chartStartX + CGFloat(index) * configuration.dayColumnWidth
-                    let isToday = calendar.isDateInToday(date)
+                for index in 0...days.count {
+                    let x = CGFloat(index) * configuration.dayColumnWidth
 
                     var path = Path()
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: totalHeight))
 
-                    if isToday && configuration.showTodayMarker {
-                        context.stroke(path, with: .color(configuration.todayMarkerColor.opacity(0.5)), lineWidth: 2)
-                    } else {
-                        context.stroke(path, with: .color(configuration.gridColor), lineWidth: 0.5)
-                    }
+                    context.stroke(path, with: .color(configuration.gridColor), lineWidth: 0.5)
                 }
             }
 
@@ -78,7 +107,7 @@ struct TodayMarkerLine: View {
         guard today >= rangeStart && today <= rangeEnd else { return nil }
 
         let days = calendar.dateComponents([.day], from: rangeStart, to: today).day ?? 0
-        return configuration.labelColumnWidth + CGFloat(days) * configuration.dayColumnWidth + configuration.dayColumnWidth / 2
+        return CGFloat(days) * configuration.dayColumnWidth + configuration.dayColumnWidth / 2
     }
 
     var body: some View {

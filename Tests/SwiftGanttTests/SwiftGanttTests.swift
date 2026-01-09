@@ -1,6 +1,7 @@
 import Testing
 @testable import SwiftGantt
 import Foundation
+import SwiftUI
 
 struct SampleTask: GanttTask {
     let id = UUID()
@@ -8,6 +9,8 @@ struct SampleTask: GanttTask {
     let startDate: Date
     let endDate: Date
     var progress: Double = 0.0
+    var subtitle: String? = nil
+    var color: Color = .blue
 }
 
 @Test func taskConformsToProtocol() async throws {
@@ -19,4 +22,6 @@ struct SampleTask: GanttTask {
 
     #expect(task.title == "Test Task")
     #expect(task.progress == 0.0)
+    #expect(task.subtitle == nil)
+    #expect(task.color == .blue)
 }
