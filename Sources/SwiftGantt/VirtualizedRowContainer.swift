@@ -29,7 +29,7 @@ struct VirtualizedRowContainer<Item: GanttTask, Content: View>: View {
 
     /// Calculate the range of visible row indices plus buffer
     private var visibleRange: Range<Int> {
-        guard !items.isEmpty && rowHeight > 0 else { return 0..<0 }
+        guard !items.isEmpty && rowHeight > 0 && viewportHeight > 0 else { return 0..<0 }
 
         let firstVisible = Int(floor(scrollOffset / rowHeight))
         let lastVisible = Int(ceil((scrollOffset + viewportHeight) / rowHeight))
@@ -37,6 +37,8 @@ struct VirtualizedRowContainer<Item: GanttTask, Content: View>: View {
         let firstWithBuffer = max(0, firstVisible - bufferCount)
         let lastWithBuffer = min(items.count, lastVisible + bufferCount)
 
+        // Ensure valid range (can be invalid during layout transitions)
+        guard firstWithBuffer < lastWithBuffer else { return 0..<0 }
         return firstWithBuffer..<lastWithBuffer
     }
 
@@ -83,7 +85,7 @@ struct VirtualizedColumnContainer<Content: View>: View {
 
     /// Calculate the range of visible column indices plus buffer
     private var visibleRange: Range<Int> {
-        guard totalColumns > 0 && columnWidth > 0 else { return 0..<0 }
+        guard totalColumns > 0 && columnWidth > 0 && viewportWidth > 0 else { return 0..<0 }
 
         let firstVisible = Int(floor(scrollOffset / columnWidth))
         let lastVisible = Int(ceil((scrollOffset + viewportWidth) / columnWidth))
@@ -91,6 +93,8 @@ struct VirtualizedColumnContainer<Content: View>: View {
         let firstWithBuffer = max(0, firstVisible - bufferCount)
         let lastWithBuffer = min(totalColumns, lastVisible + bufferCount)
 
+        // Ensure valid range (can be invalid during layout transitions)
+        guard firstWithBuffer < lastWithBuffer else { return 0..<0 }
         return firstWithBuffer..<lastWithBuffer
     }
 
