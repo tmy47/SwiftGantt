@@ -274,6 +274,7 @@ public struct GanttChart<Item: GanttTask>: View {
     private let tasks: [Item]
     private let dateRange: ClosedRange<Date>
     private let configuration: GanttChartConfiguration
+    private let onTaskTap: ((Item) -> Void)?
 
     private let calendar = Calendar.current
 
@@ -323,11 +324,13 @@ public struct GanttChart<Item: GanttTask>: View {
     public init(
         tasks: [Item],
         dateRange: ClosedRange<Date>,
-        configuration: GanttChartConfiguration = .default
+        configuration: GanttChartConfiguration = .default,
+        onTaskTap: ((Item) -> Void)? = nil
     ) {
         self.tasks = tasks
         self.dateRange = dateRange
         self.configuration = configuration
+        self.onTaskTap = onTaskTap
     }
 
     public var body: some View {
@@ -384,9 +387,10 @@ public struct GanttChart<Item: GanttTask>: View {
                                 GanttTaskBarRow(
                                     task: task,
                                     dateRange: extendedDateRange,
-                                    configuration: configuration,
-                                    isSelected: selectedTaskId == task.id
-                                )
+                                    configuration: configuration
+                                ) {
+                                    onTaskTap?(task)
+                                }
                             }
 
                             // Today marker
@@ -510,12 +514,14 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
     let dateRange: ClosedRange<Date>
     let configuration: GanttChartConfiguration
     let isSelected: Bool
+    let onTap: (() -> Void)?
 
-    init(task: Item, dateRange: ClosedRange<Date>, configuration: GanttChartConfiguration, isSelected: Bool = false) {
+    init(task: Item, dateRange: ClosedRange<Date>, configuration: GanttChartConfiguration, isSelected: Bool = false, onTap: (() -> Void)? = nil) {
         self.task = task
         self.dateRange = dateRange
         self.configuration = configuration
         self.isSelected = isSelected
+        self.onTap = onTap
     }
 
     private let calendar = Calendar.current
@@ -553,12 +559,17 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
             Color.clear
                 .frame(width: chartWidth, height: configuration.rowHeight)
 
-            TaskBar(
-                progress: task.progress,
-                color: task.color,
-                configuration: configuration,
-                barHeight: barHeight
-            )
+            Button {
+                onTap?()
+            } label: {
+                TaskBar(
+                    progress: task.progress,
+                    color: task.color,
+                    configuration: configuration,
+                    barHeight: barHeight
+                )
+            }
+            .buttonStyle(.plain)
             .frame(width: max(taskWidth, configuration.dayColumnWidth / 2), height: barHeight)
             .offset(x: taskStartOffset)
         }
@@ -606,6 +617,6 @@ private struct TaskBar: View {
 
 public extension GanttChart {
     func configuration(_ configuration: GanttChartConfiguration) -> GanttChart {
-        GanttChart(tasks: tasks, dateRange: dateRange, configuration: configuration)
+        GanttChart(tasks: tasks, dateRange: dateRange, configuration: configuration, onTaskTap: onTaskTap)
     }
 }

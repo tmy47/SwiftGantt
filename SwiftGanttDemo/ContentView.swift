@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var tasks: [DemoTask] = SampleData.tasks
     @State private var isLoading = false
     @State private var scrollToTodayTrigger = UUID()
+    @State private var selectedTask: DemoTask?
 
     var body: some View {
         NavigationStack {
@@ -19,7 +20,9 @@ struct ContentView: View {
                 GanttChart(
                     tasks: tasks,
                     dateRange: SampleData.dateRange
-                )
+                ) { task in
+                    selectedTask = task
+                }
                 .id(scrollToTodayTrigger)
 
                 if isLoading {
@@ -43,6 +46,12 @@ struct ContentView: View {
                             Image(systemName: "calendar.circle")
                         }
 
+                        Button {
+                            sortByColor()
+                        } label: {
+                            Image(systemName: "paintpalette")
+                        }
+
                         Menu {
                             ForEach(DatasetSize.allCases, id: \.self) { size in
                                 Button {
@@ -61,6 +70,9 @@ struct ContentView: View {
                         }
                     }
                 }
+            }
+            .sheet(item: $selectedTask) { task in
+                TaskDetailView(task: task)
             }
         }
     }
@@ -85,6 +97,111 @@ struct ContentView: View {
                 tasks = newTasks
                 isLoading = false
             }
+        }
+    }
+
+    private func sortByColor() {
+        tasks.sort { task1, task2 in
+            let hue1 = UIColor(task1.color).hue
+            let hue2 = UIColor(task2.color).hue
+            return hue1 < hue2
+        }
+    }
+}
+
+// MARK: - UIColor Hue Extension
+
+extension UIColor {
+    var hue: CGFloat {
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+        getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+        return hue
+    }
+}
+
+// MARK: - Task Detail View
+
+struct TaskDetailView: View {
+    let task: DemoTask
+    @Environment(\.dismiss) private var dismiss
+
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter
+    }()
+
+    private var duration: Int {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: task.startDate)
+        let end = calendar.startOfDay(for: task.endDate)
+        return (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack {
+                        Circle()
+                            .fill(task.color)
+                            .frame(width: 12, height: 12)
+                        Text(task.title)
+                            .font(.headline)
+                    }
+
+                    if let subtitle = task.subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("Schedule") {
+                    LabeledContent("Start Date", value: dateFormatter.string(from: task.startDate))
+                    LabeledContent("End Date", value: dateFormatter.string(from: task.endDate))
+                    LabeledContent("Duration", value: "\(duration) days")
+                }
+
+                Section("Progress") {
+                    HStack {
+                        ProgressView(value: task.progress)
+                            .tint(task.color)
+                        Text("\(Int(task.progress * 100))%")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Task Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.height(400), .large])
+        .iPadSheet()
+    }
+}
+
+// MARK: - iPad Sheet Modifier
+
+extension View {
+    @ViewBuilder
+    func iPadSheet() -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            self
+                .presentationDetents([.height(500)])
+                .frame(minWidth: 400, idealWidth: 500, maxWidth: 600)
+        } else {
+            self
         }
     }
 }
