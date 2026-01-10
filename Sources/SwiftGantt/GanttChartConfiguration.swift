@@ -50,9 +50,9 @@ public struct GanttChartConfiguration {
     public init(
         rowHeight: CGFloat = 60,
         labelColumnWidth: CGFloat = 280,
-        dayColumnWidth: CGFloat = 32,
-        gridColor: Color = .gray.opacity(0.15),
-        weekendColor: Color = .gray.opacity(0.08),
+        dayColumnWidth: CGFloat = 40,
+        gridColor: Color = .gray.opacity(0.2),
+        weekendColor: Color = .gray.opacity(0.15),
         todayMarkerColor: Color = .green,
         showTodayMarker: Bool = true,
         showHorizontalGrid: Bool = true,

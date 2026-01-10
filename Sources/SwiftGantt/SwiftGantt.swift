@@ -1,5 +1,91 @@
 import SwiftUI
 
+// MARK: - Directional Lock ScrollView
+
+struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
+    let content: Content
+    let contentSize: CGSize
+    let initialOffset: CGPoint?
+    let onOffsetChange: ((CGPoint) -> Void)?
+
+    init(
+        contentSize: CGSize,
+        initialOffset: CGPoint? = nil,
+        onOffsetChange: ((CGPoint) -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+        self.contentSize = contentSize
+        self.initialOffset = initialOffset
+        self.onOffsetChange = onOffsetChange
+    }
+
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.isDirectionalLockEnabled = true
+        scrollView.showsHorizontalScrollIndicator = true
+        scrollView.showsVerticalScrollIndicator = true
+        scrollView.bounces = true
+        scrollView.delegate = context.coordinator
+
+        let hostingController = UIHostingController(rootView: content)
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+
+        scrollView.addSubview(hostingController.view)
+        context.coordinator.hostingController = hostingController
+
+        NSLayoutConstraint.activate([
+            hostingController.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            hostingController.view.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            hostingController.view.widthAnchor.constraint(equalToConstant: contentSize.width),
+            hostingController.view.heightAnchor.constraint(equalToConstant: contentSize.height)
+        ])
+
+        if let offset = initialOffset {
+            DispatchQueue.main.async {
+                scrollView.setContentOffset(offset, animated: false)
+            }
+        }
+
+        return scrollView
+    }
+
+    func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.hostingController?.rootView = content
+
+        // Update content size constraints if needed
+        if let hostingView = context.coordinator.hostingController?.view {
+            for constraint in hostingView.constraints {
+                if constraint.firstAttribute == .width {
+                    constraint.constant = contentSize.width
+                } else if constraint.firstAttribute == .height {
+                    constraint.constant = contentSize.height
+                }
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onOffsetChange: onOffsetChange)
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        var hostingController: UIHostingController<Content>?
+        let onOffsetChange: ((CGPoint) -> Void)?
+
+        init(onOffsetChange: ((CGPoint) -> Void)?) {
+            self.onOffsetChange = onOffsetChange
+        }
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            onOffsetChange?(scrollView.contentOffset)
+        }
+    }
+}
+
 /// SwiftGantt - A Gantt chart component for SwiftUI
 public struct GanttChart<Item: GanttTask>: View {
     private let tasks: [Item]
@@ -7,8 +93,6 @@ public struct GanttChart<Item: GanttTask>: View {
     private let configuration: GanttChartConfiguration
 
     private let calendar = Calendar.current
-
-    @State private var hasScrolledToToday = false
 
     private var totalDays: Int {
         let start = calendar.startOfDay(for: dateRange.lowerBound)
@@ -44,23 +128,33 @@ public struct GanttChart<Item: GanttTask>: View {
         self.configuration = configuration
     }
 
+    private var totalContentHeight: CGFloat {
+        configuration.headerHeight + 1 + contentHeight
+    }
+
+    private var initialScrollOffset: CGPoint? {
+        guard let index = todayIndex else { return nil }
+        let todayX = CGFloat(index) * configuration.dayColumnWidth
+        return CGPoint(x: todayX - 400, y: 0) // Center today (adjust based on screen width)
+    }
+
     public var body: some View {
-        ScrollViewReader { scrollProxy in
-            ScrollView([.horizontal, .vertical], showsIndicators: true) {
+        GeometryReader { geometry in
+            let centeredOffset: CGPoint? = {
+                guard let index = todayIndex else { return nil }
+                let todayX = CGFloat(index) * configuration.dayColumnWidth
+                let centerX = max(0, todayX - geometry.size.width / 2 + configuration.dayColumnWidth / 2)
+                return CGPoint(x: centerX, y: 0)
+            }()
+
+            DirectionalLockScrollView(
+                contentSize: CGSize(width: timelineWidth, height: totalContentHeight),
+                initialOffset: centeredOffset
+            ) {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Dates header with today anchor
-                    HStack(spacing: 0) {
-                        ForEach(0..<totalDays, id: \.self) { dayIndex in
-                            Color.clear
-                                .frame(width: configuration.dayColumnWidth, height: configuration.headerHeight)
-                                .id(dayIndex == todayIndex ? "today" : "day-\(dayIndex)")
-                        }
-                    }
-                    .frame(width: timelineWidth, height: configuration.headerHeight)
-                    .overlay {
-                        GanttChartHeader(dateRange: dateRange, configuration: configuration)
-                            .frame(width: timelineWidth, height: configuration.headerHeight)
-                    }
+                    // Dates header
+                    GanttChartHeader(dateRange: dateRange, configuration: configuration)
+                        .frame(width: timelineWidth, height: configuration.headerHeight)
 
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
@@ -94,16 +188,7 @@ public struct GanttChart<Item: GanttTask>: View {
                     .frame(width: timelineWidth, height: contentHeight)
                 }
             }
-            .scrollContentBackground(.hidden)
             .background(Color(white: 0.98))
-            .onAppear {
-                if !hasScrolledToToday && todayIndex != nil {
-                    hasScrolledToToday = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollProxy.scrollTo("today", anchor: .center)
-                    }
-                }
-            }
         }
     }
 }

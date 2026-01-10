@@ -25,71 +25,65 @@ struct GanttChartGrid: View {
         return dates
     }
 
+    private func isWeekend(_ date: Date) -> Bool {
+        let weekday = calendar.component(.weekday, from: date)
+        return weekday == 1 || weekday == 7
+    }
+
+    private func isToday(_ date: Date) -> Bool {
+        calendar.isDateInToday(date)
+    }
+
     var body: some View {
-        Canvas { context, size in
-            let totalHeight = CGFloat(rowCount) * configuration.rowHeight
+        let totalHeight = CGFloat(rowCount) * configuration.rowHeight
+        let totalWidth = CGFloat(totalDays) * configuration.dayColumnWidth
 
-            // Weekend shading
-            if configuration.showWeekendHighlight {
-                for (index, date) in days.enumerated() {
-                    let weekday = calendar.component(.weekday, from: date)
-                    let isWeekend = weekday == 1 || weekday == 7
-
-                    if isWeekend {
-                        let x = CGFloat(index) * configuration.dayColumnWidth
-                        let rect = CGRect(
-                            x: x,
-                            y: 0,
-                            width: configuration.dayColumnWidth,
-                            height: totalHeight
-                        )
-                        context.fill(Path(rect), with: .color(configuration.weekendColor))
-                    }
-                }
-            }
-
-            // Today column highlight
-            if configuration.showTodayMarker {
-                for (index, date) in days.enumerated() {
-                    if calendar.isDateInToday(date) {
-                        let x = CGFloat(index) * configuration.dayColumnWidth
-                        let rect = CGRect(
-                            x: x,
-                            y: 0,
-                            width: configuration.dayColumnWidth,
-                            height: totalHeight
-                        )
-                        context.fill(Path(rect), with: .color(configuration.todayMarkerColor.opacity(0.1)))
-                    }
+        ZStack(alignment: .topLeading) {
+            // Background with weekend shading
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(Array(days.enumerated()), id: \.offset) { index, date in
+                    Rectangle()
+                        .fill(backgroundColor(for: date))
+                        .frame(width: configuration.dayColumnWidth, height: totalHeight)
                 }
             }
 
             // Vertical grid lines
             if configuration.showVerticalGrid {
-                for index in 0...days.count {
-                    let x = CGFloat(index) * configuration.dayColumnWidth
-
-                    var path = Path()
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: totalHeight))
-
-                    context.stroke(path, with: .color(configuration.gridColor), lineWidth: 0.5)
+                HStack(alignment: .top, spacing: 0) {
+                    ForEach(0..<totalDays, id: \.self) { index in
+                        Rectangle()
+                            .fill(configuration.gridColor)
+                            .frame(width: 0.5, height: totalHeight)
+                            .offset(x: CGFloat(index) * configuration.dayColumnWidth)
+                    }
                 }
+                .frame(width: totalWidth, alignment: .leading)
             }
 
             // Horizontal grid lines
             if configuration.showHorizontalGrid {
-                for row in 0...rowCount {
-                    let y = CGFloat(row) * configuration.rowHeight
-
-                    var path = Path()
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-
-                    context.stroke(path, with: .color(configuration.gridColor), lineWidth: 0.5)
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(0..<rowCount, id: \.self) { row in
+                        Rectangle()
+                            .fill(configuration.gridColor)
+                            .frame(width: totalWidth, height: 0.5)
+                            .offset(y: CGFloat(row) * configuration.rowHeight)
+                    }
                 }
+                .frame(height: totalHeight, alignment: .top)
             }
         }
+        .frame(width: totalWidth, height: totalHeight)
+    }
+
+    private func backgroundColor(for date: Date) -> Color {
+        if configuration.showTodayMarker && isToday(date) {
+            return configuration.todayMarkerColor.opacity(0.1)
+        } else if configuration.showWeekendHighlight && isWeekend(date) {
+            return configuration.weekendColor
+        }
+        return .clear
     }
 }
 

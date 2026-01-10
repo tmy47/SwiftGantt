@@ -50,107 +50,84 @@ enum SampleData {
         return start...end
     }
 
+    private static func makeTask(
+        title: String,
+        startOffset: Int,
+        duration: Int,
+        progress: Double,
+        color: Color,
+        location: String
+    ) -> DemoTask {
+        let start = calendar.date(byAdding: .day, value: startOffset, to: today)!
+        let end = calendar.date(byAdding: .day, value: startOffset + duration, to: today)!
+        return DemoTask(
+            title: title,
+            subtitle: "\(formatDateRange(start: start, end: end)) • \(duration)d • \(location)",
+            startDate: start,
+            endDate: end,
+            progress: progress,
+            color: color
+        )
+    }
+
     static var tasks: [DemoTask] {
-        let task1Start = calendar.date(byAdding: .day, value: -6, to: today)!
-        let task1End = calendar.date(byAdding: .day, value: 5, to: today)!
+        [
+            // Phase 1: Site Preparation
+            makeTask(title: "Site Survey and Layout", startOffset: -10, duration: 5, progress: 1.0, color: .green, location: "Site • Ground Level"),
+            makeTask(title: "Temporary Environmental Controls", startOffset: -6, duration: 11, progress: 0.85, color: .green, location: "Site • All Areas"),
+            makeTask(title: "Demolition and Clearing", startOffset: -8, duration: 6, progress: 1.0, color: .green, location: "Site • North Section"),
 
-        let task2Start = calendar.date(byAdding: .day, value: -4, to: today)!
-        let task2End = calendar.date(byAdding: .day, value: 8, to: today)!
+            // Phase 2: Foundation
+            makeTask(title: "Excavation and Grading", startOffset: -4, duration: 8, progress: 0.65, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • All"),
+            makeTask(title: "Foundation Formwork", startOffset: 2, duration: 10, progress: 0.34, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • Core"),
+            makeTask(title: "Rebar Installation - Foundation", startOffset: 5, duration: 7, progress: 0.20, color: .orange, location: "Foundation • Grid A-F"),
+            makeTask(title: "Concrete Pour - Foundation", startOffset: 10, duration: 4, progress: 0.0, color: .gray, location: "Foundation • All"),
 
-        let task3Start = calendar.date(byAdding: .day, value: -2, to: today)!
-        let task3End = calendar.date(byAdding: .day, value: 12, to: today)!
+            // Phase 3: Structure
+            makeTask(title: "Steel Erection - Phase 1", startOffset: 14, duration: 15, progress: 0.0, color: .gray, location: "Structure • L1-5"),
+            makeTask(title: "Concrete/Steel Structure Vertical", startOffset: 8, duration: 14, progress: 0.34, color: .orange, location: "Structure • L20-24"),
+            makeTask(title: "Metal Deck Installation", startOffset: 18, duration: 12, progress: 0.0, color: .gray, location: "Structure • L1-10"),
+            makeTask(title: "Concrete Slab on Deck", startOffset: 22, duration: 10, progress: 0.0, color: .gray, location: "Structure • L1-5"),
 
-        let task4Start = calendar.date(byAdding: .day, value: 0, to: today)!
-        let task4End = calendar.date(byAdding: .day, value: 18, to: today)!
+            // Phase 4: Exterior
+            makeTask(title: "Exterior Curtain Wall/Window Wall", startOffset: 0, duration: 18, progress: 0.34, color: .orange, location: "Exterior • L10-14"),
+            makeTask(title: "Roofing and Waterproofing", startOffset: 28, duration: 14, progress: 0.0, color: .gray, location: "Exterior • Roof"),
+            makeTask(title: "Exterior Cladding - North", startOffset: 25, duration: 20, progress: 0.0, color: .gray, location: "Exterior • North Face"),
+            makeTask(title: "Exterior Cladding - South", startOffset: 30, duration: 20, progress: 0.0, color: .gray, location: "Exterior • South Face"),
 
-        let task5Start = calendar.date(byAdding: .day, value: 8, to: today)!
-        let task5End = calendar.date(byAdding: .day, value: 22, to: today)!
+            // Phase 5: MEP Rough-In
+            makeTask(title: "MEP Rough-In - Primary Horizontal", startOffset: -4, duration: 12, progress: 0.34, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L8"),
+            makeTask(title: "Electrical Rough-In", startOffset: 12, duration: 18, progress: 0.0, color: .purple, location: "Interior • All Floors"),
+            makeTask(title: "Plumbing Rough-In", startOffset: 14, duration: 16, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • L1-10"),
+            makeTask(title: "HVAC Ductwork Installation", startOffset: 16, duration: 20, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
+            makeTask(title: "Fire Sprinkler Installation", startOffset: 20, duration: 14, progress: 0.0, color: Color(red: 0.9, green: 0.3, blue: 0.3), location: "Interior • All"),
 
-        let task6Start = calendar.date(byAdding: .day, value: 2, to: today)!
-        let task6End = calendar.date(byAdding: .day, value: 8, to: today)!
+            // Phase 6: Interior Framing
+            makeTask(title: "Metal Stud Framing and Fire-Rated", startOffset: -2, duration: 14, progress: 0.45, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L5-7"),
+            makeTask(title: "Drywall Installation", startOffset: 24, duration: 18, progress: 0.0, color: .gray, location: "Interior • L1-10"),
+            makeTask(title: "Ceiling Grid Installation", startOffset: 32, duration: 12, progress: 0.0, color: .gray, location: "Interior • L1-5"),
 
-        let task7Start = calendar.date(byAdding: .day, value: 5, to: today)!
-        let task7End = calendar.date(byAdding: .day, value: 12, to: today)!
+            // Phase 7: Finishes
+            makeTask(title: "Interior Painting", startOffset: 38, duration: 16, progress: 0.0, color: .gray, location: "Interior • All"),
+            makeTask(title: "Flooring Installation", startOffset: 42, duration: 14, progress: 0.0, color: .gray, location: "Interior • L1-10"),
+            makeTask(title: "Millwork and Casework", startOffset: 45, duration: 12, progress: 0.0, color: .gray, location: "Interior • Common Areas"),
 
-        let task8Start = calendar.date(byAdding: .day, value: 10, to: today)!
-        let task8End = calendar.date(byAdding: .day, value: 20, to: today)!
+            // Phase 8: MEP Finishes
+            makeTask(title: "Vertical Pipe Insulation and Duct", startOffset: 10, duration: 10, progress: 0.34, color: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Interior • L5-7"),
+            makeTask(title: "Electrical Trim", startOffset: 48, duration: 10, progress: 0.0, color: .purple, location: "Interior • All"),
+            makeTask(title: "Plumbing Fixtures", startOffset: 50, duration: 8, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
+            makeTask(title: "HVAC Commissioning", startOffset: 52, duration: 10, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
 
-        let task9Start = calendar.date(byAdding: .day, value: 18, to: today)!
-        let task9End = calendar.date(byAdding: .day, value: 28, to: today)!
+            // Phase 9: Site Work
+            makeTask(title: "Site Logistics - Crane Jump/Climb", startOffset: 5, duration: 7, progress: 0.34, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Core • Crane Mast"),
+            makeTask(title: "Landscaping", startOffset: 55, duration: 14, progress: 0.0, color: .green, location: "Site • Exterior"),
+            makeTask(title: "Parking Lot Paving", startOffset: 50, duration: 10, progress: 0.0, color: .gray, location: "Site • Parking"),
 
-        return [
-            DemoTask(
-                title: "Temporary Environmental Controls a...",
-                subtitle: "\(formatDateRange(start: task1Start, end: task1End)) • 24 • Second Floor • Office 305",
-                startDate: task1Start,
-                endDate: task1End,
-                progress: 0.0,
-                color: .gray
-            ),
-            DemoTask(
-                title: "MEP Rough-In - Primary Horiz...",
-                subtitle: "\(formatDateRange(start: task2Start, end: task2End)) • 10d • Building Interior • L8",
-                startDate: task2Start,
-                endDate: task2End,
-                progress: 0.34,
-                color: Color(red: 0.2, green: 0.7, blue: 0.3)
-            ),
-            DemoTask(
-                title: "Metal Stud Framing and Fire-Rated...",
-                subtitle: "\(formatDateRange(start: task3Start, end: task3End)) • 12d • Building Interior • L5-7",
-                startDate: task3Start,
-                endDate: task3End,
-                progress: 0.0,
-                color: .gray
-            ),
-            DemoTask(
-                title: "Exterior Curtain Wall/Window Wall P...",
-                subtitle: "\(formatDateRange(start: task4Start, end: task4End)) • 15d • Building Interior • L10-14",
-                startDate: task4Start,
-                endDate: task4End,
-                progress: 0.34,
-                color: .orange
-            ),
-            DemoTask(
-                title: "Concrete/Steel Structure Vertical Pr...",
-                subtitle: "\(formatDateRange(start: task5Start, end: task5End)) • 10d • Structure • L20-24",
-                startDate: task5Start,
-                endDate: task5End,
-                progress: 0.34,
-                color: .orange
-            ),
-            DemoTask(
-                title: "Firestopping and Penetration Sealan...",
-                subtitle: "\(formatDateRange(start: task6Start, end: task6End)) • 5d • Building Interior • L3-4",
-                startDate: task6Start,
-                endDate: task6End,
-                progress: 0.0,
-                color: .purple
-            ),
-            DemoTask(
-                title: "Site Logistics - Crane Jump/Climb",
-                subtitle: "\(formatDateRange(start: task7Start, end: task7End)) • 2d • Core • Crane Mast",
-                startDate: task7Start,
-                endDate: task7End,
-                progress: 0.34,
-                color: Color(red: 0.3, green: 0.6, blue: 0.9)
-            ),
-            DemoTask(
-                title: "Vertical Pipe Insulation and Duct Lag...",
-                subtitle: "\(formatDateRange(start: task8Start, end: task8End)) • 8d • Building Interior • L5-7",
-                startDate: task8Start,
-                endDate: task8End,
-                progress: 0.34,
-                color: Color(red: 0.9, green: 0.4, blue: 0.6)
-            ),
-            DemoTask(
-                title: "Permitting and Code Review Submis...",
-                subtitle: "\(formatDateRange(start: task9Start, end: task9End)) • 4d • Offsite",
-                startDate: task9Start,
-                endDate: task9End,
-                progress: 0.34,
-                color: Color(red: 0.9, green: 0.4, blue: 0.6)
-            ),
+            // Phase 10: Closeout
+            makeTask(title: "Firestopping and Penetration Sealant", startOffset: 2, duration: 6, progress: 0.50, color: .purple, location: "Interior • L3-4"),
+            makeTask(title: "Permitting and Code Review", startOffset: 18, duration: 10, progress: 0.34, color: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Offsite"),
+            makeTask(title: "Final Inspections", startOffset: 58, duration: 8, progress: 0.0, color: .gray, location: "All Areas"),
+            makeTask(title: "Punch List and Closeout", startOffset: 62, duration: 10, progress: 0.0, color: .gray, location: "All Areas"),
         ]
     }
 }
