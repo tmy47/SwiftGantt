@@ -25,7 +25,8 @@ struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
         scrollView.isDirectionalLockEnabled = true
         scrollView.showsHorizontalScrollIndicator = true
         scrollView.showsVerticalScrollIndicator = true
-        scrollView.bounces = true
+        scrollView.alwaysBounceVertical = false
+        scrollView.alwaysBounceHorizontal = true
         scrollView.delegate = context.coordinator
 
         let hostingController = UIHostingController(rootView: content)
@@ -94,6 +95,8 @@ public struct GanttChart<Item: GanttTask>: View {
 
     private let calendar = Calendar.current
 
+    @State private var scrollOffset: CGPoint = .zero
+
     private var totalDays: Int {
         let start = calendar.startOfDay(for: dateRange.lowerBound)
         let end = calendar.startOfDay(for: dateRange.upperBound)
@@ -128,16 +131,6 @@ public struct GanttChart<Item: GanttTask>: View {
         self.configuration = configuration
     }
 
-    private var totalContentHeight: CGFloat {
-        configuration.headerHeight + 1 + contentHeight
-    }
-
-    private var initialScrollOffset: CGPoint? {
-        guard let index = todayIndex else { return nil }
-        let todayX = CGFloat(index) * configuration.dayColumnWidth
-        return CGPoint(x: todayX - 400, y: 0) // Center today (adjust based on screen width)
-    }
-
     public var body: some View {
         GeometryReader { geometry in
             let centeredOffset: CGPoint? = {
@@ -147,46 +140,82 @@ public struct GanttChart<Item: GanttTask>: View {
                 return CGPoint(x: centerX, y: 0)
             }()
 
-            DirectionalLockScrollView(
-                contentSize: CGSize(width: timelineWidth, height: totalContentHeight),
-                initialOffset: centeredOffset
-            ) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Dates header
+            let chartAreaHeight = geometry.size.height - configuration.headerHeight - 1
+
+            ZStack(alignment: .topLeading) {
+                VStack(spacing: 0) {
+                    // Fixed dates header (scrolls horizontally only, extends full width)
                     GanttChartHeader(dateRange: dateRange, configuration: configuration)
                         .frame(width: timelineWidth, height: configuration.headerHeight)
+                        .offset(x: -scrollOffset.x)
+                        .frame(width: geometry.size.width, alignment: .leading)
+                        .clipped()
 
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
-                        .frame(width: timelineWidth, height: 1)
+                        .frame(height: 1)
 
-                    // Chart content
-                    ZStack(alignment: .topLeading) {
-                        // Grid
-                        GanttChartGrid(
-                            dateRange: dateRange,
-                            rowCount: tasks.count,
-                            configuration: configuration
-                        )
-                        .frame(width: timelineWidth, height: contentHeight)
-
-                        // Task bars
-                        VStack(spacing: 0) {
-                            ForEach(tasks) { task in
-                                GanttTaskBarRow(
-                                    task: task,
-                                    dateRange: dateRange,
-                                    configuration: configuration
-                                )
-                            }
+                    // Scrollable chart content
+                    DirectionalLockScrollView(
+                        contentSize: CGSize(width: timelineWidth, height: contentHeight),
+                        initialOffset: centeredOffset,
+                        onOffsetChange: { offset in
+                            scrollOffset = offset
                         }
+                    ) {
+                        ZStack(alignment: .topLeading) {
+                            // Grid
+                            GanttChartGrid(
+                                dateRange: dateRange,
+                                rowCount: tasks.count,
+                                configuration: configuration
+                            )
+                            .frame(width: timelineWidth, height: contentHeight)
 
-                        // Today marker
-                        TodayMarkerLine(dateRange: dateRange, configuration: configuration)
-                            .frame(height: contentHeight)
+                            // Task bars
+                            VStack(spacing: 0) {
+                                ForEach(tasks) { task in
+                                    GanttTaskBarRow(
+                                        task: task,
+                                        dateRange: dateRange,
+                                        configuration: configuration
+                                    )
+                                }
+                            }
+
+                            // Today marker
+                            TodayMarkerLine(dateRange: dateRange, configuration: configuration)
+                                .frame(height: contentHeight)
+                        }
+                        .frame(width: timelineWidth, height: contentHeight)
                     }
-                    .frame(width: timelineWidth, height: contentHeight)
                 }
+
+                // Floating task labels column
+                VStack(spacing: 0) {
+                    // Header spacer
+                    Color.clear
+                        .frame(height: configuration.headerHeight + 1)
+
+                    // Task labels (synced with vertical scroll)
+                    VStack(spacing: 0) {
+                        ForEach(tasks) { task in
+                            TaskLabelView(task: task, configuration: configuration)
+                        }
+                    }
+                    .offset(y: -scrollOffset.y)
+                    .frame(height: chartAreaHeight, alignment: .top)
+                    .clipped()
+                }
+                .frame(width: configuration.labelColumnWidth)
+                .background(
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: configuration.headerHeight + 1)
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                    }
+                )
             }
             .background(Color(white: 0.98))
         }

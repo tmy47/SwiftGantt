@@ -40,38 +40,35 @@ struct GanttChartGrid: View {
 
         ZStack(alignment: .topLeading) {
             // Background with weekend shading
-            HStack(alignment: .top, spacing: 0) {
-                ForEach(Array(days.enumerated()), id: \.offset) { index, date in
-                    Rectangle()
-                        .fill(backgroundColor(for: date))
-                        .frame(width: configuration.dayColumnWidth, height: totalHeight)
-                }
-            }
-
-            // Vertical grid lines
-            if configuration.showVerticalGrid {
-                HStack(alignment: .top, spacing: 0) {
-                    ForEach(0..<totalDays, id: \.self) { index in
+            HStack(spacing: 0) {
+                ForEach(Array(days.enumerated()), id: \.offset) { _, date in
+                    ZStack {
                         Rectangle()
-                            .fill(configuration.gridColor)
-                            .frame(width: 0.5, height: totalHeight)
-                            .offset(x: CGFloat(index) * configuration.dayColumnWidth)
+                            .fill(backgroundColor(for: date))
+
+                        // Vertical grid line on right edge of each day
+                        if configuration.showVerticalGrid {
+                            Rectangle()
+                                .fill(configuration.gridColor)
+                                .frame(width: 0.5)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
                     }
+                    .frame(width: configuration.dayColumnWidth, height: totalHeight)
                 }
-                .frame(width: totalWidth, alignment: .leading)
             }
 
             // Horizontal grid lines
             if configuration.showHorizontalGrid {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(0..<rowCount, id: \.self) { row in
+                VStack(spacing: 0) {
+                    ForEach(0...rowCount, id: \.self) { row in
                         Rectangle()
                             .fill(configuration.gridColor)
-                            .frame(width: totalWidth, height: 0.5)
-                            .offset(y: CGFloat(row) * configuration.rowHeight)
+                            .frame(height: 0.5)
+                            .frame(maxHeight: .infinity, alignment: .top)
                     }
                 }
-                .frame(height: totalHeight, alignment: .top)
+                .frame(width: totalWidth, height: totalHeight)
             }
         }
         .frame(width: totalWidth, height: totalHeight)
