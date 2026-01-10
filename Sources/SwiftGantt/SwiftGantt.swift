@@ -351,6 +351,11 @@ public struct GanttChart<Item: GanttTask>: View {
 
             let chartAreaHeight = max(0, geometry.size.height - configuration.headerHeight - 1)
 
+            // Calculate minimum rows to fill the viewport
+            let minRowsToFillViewport = Int(ceil(chartAreaHeight / configuration.rowHeight))
+            let displayRowCount = max(tasks.count, minRowsToFillViewport)
+            let displayContentHeight = CGFloat(displayRowCount) * configuration.rowHeight
+
             ZStack(alignment: .topLeading) {
                 VStack(spacing: 0) {
                     // Fixed dates header (scrolls horizontally only, virtualized)
@@ -371,7 +376,7 @@ public struct GanttChart<Item: GanttTask>: View {
 
                     // Scrollable chart content
                     DirectionalLockScrollView(
-                        contentSize: CGSize(width: timelineWidth, height: contentHeight),
+                        contentSize: CGSize(width: timelineWidth, height: displayContentHeight),
                         initialOffset: initialOffset,
                         scrollStateController: scrollStateController,
                         onOffsetChange: { offset in
@@ -409,13 +414,13 @@ public struct GanttChart<Item: GanttTask>: View {
 
                             // Today marker
                             TodayMarkerLine(dateRange: extendedDateRange, configuration: configuration)
-                                .frame(height: contentHeight)
+                                .frame(height: displayContentHeight)
                         }
-                        .frame(width: timelineWidth, height: contentHeight)
+                        .frame(width: timelineWidth, height: displayContentHeight)
                         .background(
                             GanttChartGrid(
                                 dateRange: extendedDateRange,
-                                rowCount: tasks.count,
+                                rowCount: displayRowCount,
                                 configuration: configuration
                             )
                         )
@@ -430,7 +435,7 @@ public struct GanttChart<Item: GanttTask>: View {
 
                     // Task labels (synced with vertical scroll - virtualized)
                     VerticalSyncScrollView(
-                        contentHeight: contentHeight,
+                        contentHeight: displayContentHeight,
                         currentOffset: scrollOffset.y,
                         scrollStateController: scrollStateController
                     ) {
@@ -452,6 +457,7 @@ public struct GanttChart<Item: GanttTask>: View {
                                 scrollStateController.setHorizontalOffset(offset)
                             }
                         }
+                        .frame(height: displayContentHeight, alignment: .top)
                     }
                     .frame(height: chartAreaHeight)
                 }

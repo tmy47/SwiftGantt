@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var selectedDataset: DatasetSize = .minimal
     @State private var tasks: [DemoTask] = SampleData.minimalTasks
     @State private var dependencies: [GanttDependency] = SampleData.minimalDependencies
+    @State private var showDependencies = true
     @State private var isLoading = false
     @State private var scrollToTodayTrigger = UUID()
     @State private var selectedTask: DemoTask?
@@ -21,7 +22,7 @@ struct ContentView: View {
             ZStack {
                 GanttChart(
                     tasks: tasks,
-                    dependencies: dependencies,
+                    dependencies: showDependencies ? dependencies : [],
                     dateRange: SampleData.dateRange
                 ) { task in
                     selectedTask = task
@@ -47,6 +48,12 @@ struct ContentView: View {
                             scrollToTodayTrigger = UUID()
                         } label: {
                             Image(systemName: "calendar.circle")
+                        }
+
+                        Button {
+                            showDependencies.toggle()
+                        } label: {
+                            Image(systemName: showDependencies ? "arrow.triangle.branch" : "minus")
                         }
 
                         Button {
