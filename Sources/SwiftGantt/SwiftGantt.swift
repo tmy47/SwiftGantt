@@ -12,6 +12,14 @@ class ScrollStateController: ObservableObject {
         let newOffset = CGPoint(x: scrollView.contentOffset.x, y: y)
         scrollView.setContentOffset(newOffset, animated: animated)
     }
+
+    func setHorizontalOffset(_ x: CGFloat, animated: Bool = true) {
+        guard let scrollView = scrollView else { return }
+        let maxX = max(0, scrollView.contentSize.width - scrollView.bounds.width)
+        let clampedX = max(0, min(x, maxX))
+        let newOffset = CGPoint(x: clampedX, y: scrollView.contentOffset.y)
+        scrollView.setContentOffset(newOffset, animated: animated)
+    }
 }
 
 // MARK: - Directional Lock ScrollView
@@ -296,6 +304,14 @@ public struct GanttChart<Item: GanttTask>: View {
         return calendar.dateComponents([.day], from: rangeStart, to: today).day
     }
 
+    /// Calculate the X offset for a task's start date
+    private func taskStartOffset(for task: Item) -> CGFloat {
+        let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
+        let taskStart = calendar.startOfDay(for: task.startDate)
+        let days = calendar.dateComponents([.day], from: rangeStart, to: taskStart).day ?? 0
+        return CGFloat(days) * configuration.dayColumnWidth
+    }
+
     public init(
         tasks: [Item],
         dateRange: ClosedRange<Date>,
@@ -398,7 +414,11 @@ public struct GanttChart<Item: GanttTask>: View {
                             rowHeight: configuration.rowHeight,
                             bufferCount: configuration.virtualizationBuffer
                         ) { task, _ in
-                            TaskLabelView(task: task, configuration: configuration)
+                            TaskLabelView(task: task, configuration: configuration) {
+                                // Scroll to show task's start at right edge of label column
+                                let offset = taskStartOffset(for: task) - configuration.labelColumnWidth
+                                scrollStateController.setHorizontalOffset(offset)
+                            }
                         }
                     }
                     .frame(height: chartAreaHeight)
@@ -423,6 +443,13 @@ public struct GanttChart<Item: GanttTask>: View {
 struct TaskLabelView<Item: GanttTask>: View {
     let task: Item
     let configuration: GanttChartConfiguration
+    let onTap: (() -> Void)?
+
+    init(task: Item, configuration: GanttChartConfiguration, onTap: (() -> Void)? = nil) {
+        self.task = task
+        self.configuration = configuration
+        self.onTap = onTap
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -452,6 +479,10 @@ struct TaskLabelView<Item: GanttTask>: View {
         }
         .padding(.horizontal, 12)
         .frame(width: configuration.labelColumnWidth, height: configuration.rowHeight)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
+        }
     }
 }
 
