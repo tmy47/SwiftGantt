@@ -319,7 +319,7 @@ public struct GanttChart<Item: GanttTask>: View {
                 return CGPoint(x: clampedX, y: 0)
             }()
 
-            let chartAreaHeight = geometry.size.height - configuration.headerHeight - 1
+            let chartAreaHeight = max(0, geometry.size.height - configuration.headerHeight - 1)
 
             ZStack(alignment: .topLeading) {
                 VStack(spacing: 0) {
