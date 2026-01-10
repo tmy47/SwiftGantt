@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var selectedDataset: DatasetSize = .demo
     @State private var tasks: [DemoTask] = SampleData.tasks
     @State private var isLoading = false
+    @State private var scrollToTodayTrigger = UUID()
 
     var body: some View {
         NavigationStack {
@@ -19,6 +20,7 @@ struct ContentView: View {
                     tasks: tasks,
                     dateRange: SampleData.dateRange
                 )
+                .id(scrollToTodayTrigger)
 
                 if isLoading {
                     Color.black.opacity(0.3)
@@ -34,21 +36,29 @@ struct ContentView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        ForEach(DatasetSize.allCases, id: \.self) { size in
-                            Button {
-                                loadDataset(size)
-                            } label: {
-                                HStack {
-                                    Text(size.rawValue)
-                                    if selectedDataset == size {
-                                        Image(systemName: "checkmark")
+                    HStack(spacing: 16) {
+                        Button {
+                            scrollToTodayTrigger = UUID()
+                        } label: {
+                            Image(systemName: "calendar.circle")
+                        }
+
+                        Menu {
+                            ForEach(DatasetSize.allCases, id: \.self) { size in
+                                Button {
+                                    loadDataset(size)
+                                } label: {
+                                    HStack {
+                                        Text(size.rawValue)
+                                        if selectedDataset == size {
+                                            Image(systemName: "checkmark")
+                                        }
                                     }
                                 }
                             }
+                        } label: {
+                            Image(systemName: "list.bullet")
                         }
-                    } label: {
-                        Image(systemName: "list.bullet")
                     }
                 }
             }

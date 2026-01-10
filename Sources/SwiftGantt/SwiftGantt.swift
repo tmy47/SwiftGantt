@@ -278,6 +278,7 @@ public struct GanttChart<Item: GanttTask>: View {
     private let calendar = Calendar.current
 
     @State private var scrollOffset: CGPoint = .zero
+    @State private var selectedTaskId: Item.ID?
     @StateObject private var scrollStateController = ScrollStateController()
 
     /// Extended date range with 1-year buffer before and after
@@ -383,7 +384,8 @@ public struct GanttChart<Item: GanttTask>: View {
                                 GanttTaskBarRow(
                                     task: task,
                                     dateRange: extendedDateRange,
-                                    configuration: configuration
+                                    configuration: configuration,
+                                    isSelected: selectedTaskId == task.id
                                 )
                             }
 
@@ -421,8 +423,13 @@ public struct GanttChart<Item: GanttTask>: View {
                             rowHeight: configuration.rowHeight,
                             bufferCount: configuration.virtualizationBuffer
                         ) { task, _ in
-                            TaskLabelView(task: task, configuration: configuration) {
-                                // Scroll to show task's start at right edge of label column
+                            TaskLabelView(
+                                task: task,
+                                configuration: configuration,
+                                isSelected: selectedTaskId == task.id
+                            ) {
+                                // Select task and scroll to show task's start at right edge of label column
+                                selectedTaskId = task.id
                                 let offset = taskStartOffset(for: task) - configuration.labelColumnWidth
                                 scrollStateController.setHorizontalOffset(offset)
                             }
@@ -450,11 +457,13 @@ public struct GanttChart<Item: GanttTask>: View {
 struct TaskLabelView<Item: GanttTask>: View {
     let task: Item
     let configuration: GanttChartConfiguration
+    let isSelected: Bool
     let onTap: (() -> Void)?
 
-    init(task: Item, configuration: GanttChartConfiguration, onTap: (() -> Void)? = nil) {
+    init(task: Item, configuration: GanttChartConfiguration, isSelected: Bool = false, onTap: (() -> Void)? = nil) {
         self.task = task
         self.configuration = configuration
+        self.isSelected = isSelected
         self.onTap = onTap
     }
 
@@ -486,6 +495,7 @@ struct TaskLabelView<Item: GanttTask>: View {
         }
         .padding(.horizontal, 12)
         .frame(width: configuration.labelColumnWidth, height: configuration.rowHeight)
+        .background(isSelected ? task.color.opacity(0.15) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture {
             onTap?()
@@ -499,6 +509,14 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
     let task: Item
     let dateRange: ClosedRange<Date>
     let configuration: GanttChartConfiguration
+    let isSelected: Bool
+
+    init(task: Item, dateRange: ClosedRange<Date>, configuration: GanttChartConfiguration, isSelected: Bool = false) {
+        self.task = task
+        self.dateRange = dateRange
+        self.configuration = configuration
+        self.isSelected = isSelected
+    }
 
     private let calendar = Calendar.current
 
@@ -545,6 +563,7 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
             .offset(x: taskStartOffset)
         }
         .frame(height: configuration.rowHeight)
+        .background(isSelected ? task.color.opacity(0.15) : Color.clear)
     }
 }
 
