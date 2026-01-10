@@ -11,7 +11,7 @@ enum DatasetSize: String, CaseIterable {
 struct ContentView: View {
     @State private var selectedDataset: DatasetSize = .minimal
     @State private var tasks: [DemoTask] = SampleData.minimalTasks
-    @State private var dependencies: [GanttDependency] = SampleData.minimalDependencies
+    @State private var dependencies: [GanttDependency<UUID>] = SampleData.minimalDependencies
     @State private var showDependencies = true
     @State private var isLoading = false
     @State private var scrollToTodayTrigger = UUID()
@@ -95,7 +95,7 @@ struct ContentView: View {
 
         DispatchQueue.global(qos: .userInitiated).async {
             let newTasks: [DemoTask]
-            let newDependencies: [GanttDependency]
+            let newDependencies: [GanttDependency<UUID>]
             switch size {
             case .minimal:
                 newTasks = SampleData.minimalTasks

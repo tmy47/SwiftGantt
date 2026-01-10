@@ -126,15 +126,15 @@ enum SampleData {
     }
 
     /// Minimal dependency: Task A -> Task B (end-to-start)
-    static var minimalDependencies: [GanttDependency] {
+    static var minimalDependencies: [GanttDependency<UUID>] {
         [
             GanttDependency(fromId: minimalTaskIdA, toId: minimalTaskIdB, type: .endToStart)
         ]
     }
 
     /// Demo dependencies: 22 logical construction sequence dependencies
-    static var demoDependencies: [GanttDependency] {
-        func dep(_ from: TaskIndex, _ to: TaskIndex) -> GanttDependency {
+    static var demoDependencies: [GanttDependency<UUID>] {
+        func dep(_ from: TaskIndex, _ to: TaskIndex) -> GanttDependency<UUID> {
             GanttDependency(fromId: demoTaskIds[from.rawValue], toId: demoTaskIds[to.rawValue], type: .endToStart)
         }
 

@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// Calculates paths for dependency lines between tasks
-struct DependencyPathCalculator<Task: GanttTask> {
+struct DependencyPathCalculator<Task: GanttTask> where Task.ID: Hashable {
     let tasks: [Task]
-    let taskIndexMap: [UUID: Int]
+    let taskIndexMap: [Task.ID: Int]
     let dateRange: ClosedRange<Date>
     let configuration: GanttChartConfiguration
 
@@ -15,16 +15,16 @@ struct DependencyPathCalculator<Task: GanttTask> {
         self.configuration = configuration
 
         // Build lookup map for O(1) task index access
-        var map: [UUID: Int] = [:]
+        var map: [Task.ID: Int] = [:]
         for (index, task) in tasks.enumerated() {
-            map[task.id as! UUID] = index
+            map[task.id] = index
         }
         self.taskIndexMap = map
     }
 
     // MARK: - Task Position Calculations
 
-    func rowIndex(for taskId: UUID) -> Int? {
+    func rowIndex(for taskId: Task.ID) -> Int? {
         return taskIndexMap[taskId]
     }
 
@@ -90,7 +90,7 @@ struct DependencyPathCalculator<Task: GanttTask> {
     }
 
     /// Generate a path for a dependency with rounded corners
-    func path(for dependency: GanttDependency) -> Path? {
+    func path(for dependency: GanttDependency<Task.ID>) -> Path? {
         guard let fromIndex = rowIndex(for: dependency.fromId),
               let toIndex = rowIndex(for: dependency.toId),
               fromIndex < tasks.count,
@@ -225,7 +225,7 @@ struct DependencyPathCalculator<Task: GanttTask> {
     }
 
     /// Generate arrowhead path at the end point
-    func arrowPath(for dependency: GanttDependency) -> Path? {
+    func arrowPath(for dependency: GanttDependency<Task.ID>) -> Path? {
         guard let toIndex = rowIndex(for: dependency.toId),
               toIndex < tasks.count else {
             return nil

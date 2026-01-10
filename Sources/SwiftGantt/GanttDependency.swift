@@ -9,16 +9,16 @@ public enum DependencyType: String, CaseIterable, Sendable {
 }
 
 /// Represents a dependency relationship between two tasks
-public struct GanttDependency: Identifiable, Equatable, Sendable {
+public struct GanttDependency<TaskID: Hashable & Sendable>: Identifiable, Equatable, Sendable {
     public let id: UUID
-    public let fromId: UUID
-    public let toId: UUID
+    public let fromId: TaskID
+    public let toId: TaskID
     public let type: DependencyType
 
     public init(
         id: UUID = UUID(),
-        fromId: UUID,
-        toId: UUID,
+        fromId: TaskID,
+        toId: TaskID,
         type: DependencyType = .endToStart
     ) {
         self.id = id
@@ -27,3 +27,6 @@ public struct GanttDependency: Identifiable, Equatable, Sendable {
         self.type = type
     }
 }
+
+/// Type alias for backwards compatibility with UUID-based tasks
+public typealias UUIDGanttDependency = GanttDependency<UUID>

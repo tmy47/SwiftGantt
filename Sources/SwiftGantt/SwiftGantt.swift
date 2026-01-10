@@ -270,9 +270,9 @@ struct VerticalSyncScrollView<Content: View>: UIViewRepresentable {
 }
 
 /// SwiftGantt - A Gantt chart component for SwiftUI
-public struct GanttChart<Item: GanttTask>: View {
+public struct GanttChart<Item: GanttTask>: View where Item.ID: Hashable {
     private let tasks: [Item]
-    private let dependencies: [GanttDependency]
+    private let dependencies: [GanttDependency<Item.ID>]
     private let dateRange: ClosedRange<Date>
     private let configuration: GanttChartConfiguration
     private let onTaskTap: ((Item) -> Void)?
@@ -324,7 +324,7 @@ public struct GanttChart<Item: GanttTask>: View {
 
     public init(
         tasks: [Item],
-        dependencies: [GanttDependency] = [],
+        dependencies: [GanttDependency<Item.ID>] = [],
         dateRange: ClosedRange<Date>,
         configuration: GanttChartConfiguration = .default,
         onTaskTap: ((Item) -> Void)? = nil

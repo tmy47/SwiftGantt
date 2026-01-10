@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// A view that renders dependency lines between tasks
-struct DependencyLayer<Task: GanttTask>: View {
-    let dependencies: [GanttDependency]
+struct DependencyLayer<Task: GanttTask>: View where Task.ID: Hashable {
+    let dependencies: [GanttDependency<Task.ID>]
     let tasks: [Task]
     let dateRange: ClosedRange<Date>
     let configuration: GanttChartConfiguration
