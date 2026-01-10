@@ -2,21 +2,41 @@ import SwiftUI
 
 // MARK: - Directional Lock ScrollView
 
+// MARK: - Scroll State Controller
+
+class ScrollStateController: ObservableObject {
+    weak var scrollView: UIScrollView?
+
+    func setVerticalOffset(_ y: CGFloat, animated: Bool = false) {
+        guard let scrollView = scrollView else { return }
+        let newOffset = CGPoint(x: scrollView.contentOffset.x, y: y)
+        scrollView.setContentOffset(newOffset, animated: animated)
+    }
+}
+
+// MARK: - Directional Lock ScrollView
+
 struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
     let content: Content
     let contentSize: CGSize
     let initialOffset: CGPoint?
     let onOffsetChange: ((CGPoint) -> Void)?
+    let horizontalPagingEnabled: Bool
+    let scrollStateController: ScrollStateController?
 
     init(
         contentSize: CGSize,
         initialOffset: CGPoint? = nil,
+        horizontalPagingEnabled: Bool = true,
+        scrollStateController: ScrollStateController? = nil,
         onOffsetChange: ((CGPoint) -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.content = content()
         self.contentSize = contentSize
         self.initialOffset = initialOffset
+        self.horizontalPagingEnabled = horizontalPagingEnabled
+        self.scrollStateController = scrollStateController
         self.onOffsetChange = onOffsetChange
     }
 
@@ -29,12 +49,19 @@ struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
         scrollView.alwaysBounceHorizontal = true
         scrollView.delegate = context.coordinator
 
+        // Reduce scroll event frequency for better performance
+        scrollView.decelerationRate = .fast
+
         let hostingController = UIHostingController(rootView: content)
         hostingController.view.backgroundColor = .clear
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
 
         scrollView.addSubview(hostingController.view)
         context.coordinator.hostingController = hostingController
+        context.coordinator.horizontalPagingEnabled = horizontalPagingEnabled
+
+        // Store reference in controller for external access
+        scrollStateController?.scrollView = scrollView
 
         NSLayoutConstraint.activate([
             hostingController.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
@@ -56,6 +83,8 @@ struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
 
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
         context.coordinator.hostingController?.rootView = content
+        context.coordinator.horizontalPagingEnabled = horizontalPagingEnabled
+        scrollStateController?.scrollView = scrollView
 
         // Update content size constraints if needed
         if let hostingView = context.coordinator.hostingController?.view {
@@ -76,6 +105,11 @@ struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
     class Coordinator: NSObject, UIScrollViewDelegate {
         var hostingController: UIHostingController<Content>?
         let onOffsetChange: ((CGPoint) -> Void)?
+        var horizontalPagingEnabled: Bool = true
+
+        // Track scroll state for horizontal paging
+        private var isScrollingHorizontally = false
+        private var lastContentOffset: CGPoint = .zero
 
         init(onOffsetChange: ((CGPoint) -> Void)?) {
             self.onOffsetChange = onOffsetChange
@@ -83,6 +117,146 @@ struct DirectionalLockScrollView<Content: View>: UIViewRepresentable {
 
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             onOffsetChange?(scrollView.contentOffset)
+        }
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            lastContentOffset = scrollView.contentOffset
+        }
+
+        func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+            guard horizontalPagingEnabled else { return }
+
+            // Determine if this is primarily horizontal scrolling
+            let horizontalDelta = abs(scrollView.contentOffset.x - lastContentOffset.x)
+            let verticalDelta = abs(scrollView.contentOffset.y - lastContentOffset.y)
+
+            // Only apply horizontal paging if scrolling is more horizontal than vertical
+            guard horizontalDelta > verticalDelta else { return }
+
+            let pageWidth = scrollView.bounds.width
+            guard pageWidth > 0 else { return }
+
+            let currentPage = scrollView.contentOffset.x / pageWidth
+            var targetPage: CGFloat
+
+            // Determine target page based on velocity and position
+            if velocity.x > 0.3 {
+                // Swiping right - go to next page
+                targetPage = ceil(currentPage)
+            } else if velocity.x < -0.3 {
+                // Swiping left - go to previous page
+                targetPage = floor(currentPage)
+            } else {
+                // No significant velocity - snap to nearest page
+                targetPage = round(currentPage)
+            }
+
+            // Clamp to valid range
+            let maxPage = max(0, (scrollView.contentSize.width - pageWidth) / pageWidth)
+            targetPage = max(0, min(targetPage, maxPage))
+
+            // Set target offset (keeps vertical unchanged)
+            targetContentOffset.pointee.x = targetPage * pageWidth
+        }
+    }
+}
+
+// MARK: - Vertical Sync ScrollView (for left column)
+
+struct VerticalSyncScrollView<Content: View>: UIViewRepresentable {
+    let content: Content
+    let contentHeight: CGFloat
+    let currentOffset: CGFloat
+    let scrollStateController: ScrollStateController?
+
+    init(
+        contentHeight: CGFloat,
+        currentOffset: CGFloat,
+        scrollStateController: ScrollStateController?,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+        self.contentHeight = contentHeight
+        self.currentOffset = currentOffset
+        self.scrollStateController = scrollStateController
+    }
+
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.alwaysBounceVertical = false
+        scrollView.alwaysBounceHorizontal = false
+        scrollView.delegate = context.coordinator
+
+        let hostingController = UIHostingController(rootView: content)
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+
+        scrollView.addSubview(hostingController.view)
+        context.coordinator.hostingController = hostingController
+
+        NSLayoutConstraint.activate([
+            hostingController.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            hostingController.view.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            hostingController.view.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            hostingController.view.heightAnchor.constraint(equalToConstant: contentHeight)
+        ])
+
+        return scrollView
+    }
+
+    func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.hostingController?.rootView = content
+        context.coordinator.scrollStateController = scrollStateController
+
+        // Update height constraint
+        if let hostingView = context.coordinator.hostingController?.view {
+            for constraint in hostingView.constraints {
+                if constraint.firstAttribute == .height {
+                    constraint.constant = contentHeight
+                }
+            }
+        }
+
+        // Sync offset from main scroll view (only if not currently being dragged)
+        if !context.coordinator.isDragging {
+            let clampedY = max(0, min(currentOffset, max(0, contentHeight - scrollView.bounds.height)))
+            if abs(scrollView.contentOffset.y - clampedY) > 1 {
+                scrollView.contentOffset.y = clampedY
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        var hostingController: UIHostingController<Content>?
+        var scrollStateController: ScrollStateController?
+        var isDragging = false
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            isDragging = true
+        }
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            if isDragging {
+                scrollStateController?.setVerticalOffset(scrollView.contentOffset.y)
+            }
+        }
+
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            if !decelerate {
+                isDragging = false
+            }
+        }
+
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            isDragging = false
         }
     }
 }
@@ -96,6 +270,7 @@ public struct GanttChart<Item: GanttTask>: View {
     private let calendar = Calendar.current
 
     @State private var scrollOffset: CGPoint = .zero
+    @StateObject private var scrollStateController = ScrollStateController()
 
     private var totalDays: Int {
         let start = calendar.startOfDay(for: dateRange.lowerBound)
@@ -159,6 +334,7 @@ public struct GanttChart<Item: GanttTask>: View {
                     DirectionalLockScrollView(
                         contentSize: CGSize(width: timelineWidth, height: contentHeight),
                         initialOffset: centeredOffset,
+                        scrollStateController: scrollStateController,
                         onOffsetChange: { offset in
                             scrollOffset = offset
                         }
@@ -197,15 +373,19 @@ public struct GanttChart<Item: GanttTask>: View {
                     Color.clear
                         .frame(height: configuration.headerHeight + 1)
 
-                    // Task labels (synced with vertical scroll)
-                    VStack(spacing: 0) {
-                        ForEach(tasks) { task in
-                            TaskLabelView(task: task, configuration: configuration)
+                    // Task labels (synced with vertical scroll - now scrollable)
+                    VerticalSyncScrollView(
+                        contentHeight: contentHeight,
+                        currentOffset: scrollOffset.y,
+                        scrollStateController: scrollStateController
+                    ) {
+                        VStack(spacing: 0) {
+                            ForEach(tasks) { task in
+                                TaskLabelView(task: task, configuration: configuration)
+                            }
                         }
                     }
-                    .offset(y: -scrollOffset.y)
-                    .frame(height: chartAreaHeight, alignment: .top)
-                    .clipped()
+                    .frame(height: chartAreaHeight)
                 }
                 .frame(width: configuration.labelColumnWidth)
                 .background(
