@@ -45,8 +45,8 @@ enum SampleData {
     }
 
     static var dateRange: ClosedRange<Date> {
-        let start = calendar.date(byAdding: .day, value: -7, to: today)!
-        let end = calendar.date(byAdding: .day, value: 35, to: today)!
+        let start = calendar.date(byAdding: .year, value: -1, to: today)!
+        let end = calendar.date(byAdding: .year, value: 1, to: today)!
         return start...end
     }
 

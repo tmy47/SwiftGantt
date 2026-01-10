@@ -8,8 +8,6 @@ public struct GanttChart<Item: GanttTask>: View {
 
     private let calendar = Calendar.current
 
-    @State private var verticalScrollOffset: CGFloat = 0
-    @State private var horizontalScrollOffset: CGFloat = 0
     @State private var hasScrolledToToday = false
 
     private var totalDays: Int {
@@ -47,126 +45,70 @@ public struct GanttChart<Item: GanttTask>: View {
     }
 
     public var body: some View {
-        GeometryReader { geometry in
-            let availableHeight = geometry.size.height - configuration.headerHeight
-
-            ZStack(alignment: .topLeading) {
-                // Main scrollable content (timeline + bars)
-                VStack(spacing: 0) {
-                    // Header
-                    ScrollView(.horizontal, showsIndicators: false) {
+        ScrollViewReader { scrollProxy in
+            ScrollView([.horizontal, .vertical], showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Dates header with today anchor
+                    HStack(spacing: 0) {
+                        ForEach(0..<totalDays, id: \.self) { dayIndex in
+                            Color.clear
+                                .frame(width: configuration.dayColumnWidth, height: configuration.headerHeight)
+                                .id(dayIndex == todayIndex ? "today" : "day-\(dayIndex)")
+                        }
+                    }
+                    .frame(width: timelineWidth, height: configuration.headerHeight)
+                    .overlay {
                         GanttChartHeader(dateRange: dateRange, configuration: configuration)
                             .frame(width: timelineWidth, height: configuration.headerHeight)
-                            .offset(x: horizontalScrollOffset)
                     }
-                    .frame(height: configuration.headerHeight)
-                    .disabled(true)
-                    .overlay(alignment: .bottom) {
-                        Divider()
-                    }
+
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: timelineWidth, height: 1)
 
                     // Chart content
-                    ScrollViewReader { scrollProxy in
-                        ScrollView([.horizontal, .vertical], showsIndicators: true) {
-                            ZStack(alignment: .topLeading) {
-                                // Grid background
-                                GanttChartGrid(
+                    ZStack(alignment: .topLeading) {
+                        // Grid
+                        GanttChartGrid(
+                            dateRange: dateRange,
+                            rowCount: tasks.count,
+                            configuration: configuration
+                        )
+                        .frame(width: timelineWidth, height: contentHeight)
+
+                        // Task bars
+                        VStack(spacing: 0) {
+                            ForEach(tasks) { task in
+                                GanttTaskBarRow(
+                                    task: task,
                                     dateRange: dateRange,
-                                    rowCount: tasks.count,
                                     configuration: configuration
                                 )
-                                .frame(width: timelineWidth, height: contentHeight)
-
-                                // Today anchor for scrolling
-                                if let index = todayIndex {
-                                    Color.clear
-                                        .frame(width: 1, height: 1)
-                                        .offset(x: CGFloat(index) * configuration.dayColumnWidth + configuration.dayColumnWidth / 2)
-                                        .id("today")
-                                }
-
-                                // Task bars only (no labels)
-                                VStack(spacing: 0) {
-                                    ForEach(tasks) { task in
-                                        GanttTaskBarRow(
-                                            task: task,
-                                            dateRange: dateRange,
-                                            configuration: configuration
-                                        )
-                                    }
-                                }
-
-                                // Today marker line
-                                TodayMarkerLine(dateRange: dateRange, configuration: configuration)
-                                    .frame(height: contentHeight)
-                            }
-                            .frame(width: timelineWidth, height: contentHeight)
-                            .background(GeometryReader { proxy in
-                                Color.clear
-                                    .preference(
-                                        key: ScrollOffsetPreferenceKey.self,
-                                        value: ScrollOffset(
-                                            x: proxy.frame(in: .named("scroll")).origin.x,
-                                            y: proxy.frame(in: .named("scroll")).origin.y
-                                        )
-                                    )
-                            })
-                        }
-                        .coordinateSpace(name: "scroll")
-                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                            verticalScrollOffset = value.y
-                            horizontalScrollOffset = value.x
-                        }
-                        .onAppear {
-                            if !hasScrolledToToday, todayIndex != nil {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    withAnimation(.none) {
-                                        scrollProxy.scrollTo("today", anchor: .center)
-                                    }
-                                    hasScrolledToToday = true
-                                }
                             }
                         }
-                    }
-                }
-                .background(Color(white: 0.98))
 
-                // Floating task labels column (below header)
-                VStack(spacing: 0) {
-                    ForEach(tasks) { task in
-                        TaskLabelView(task: task, configuration: configuration)
-                            .frame(height: configuration.rowHeight)
+                        // Today marker
+                        TodayMarkerLine(dateRange: dateRange, configuration: configuration)
+                            .frame(height: contentHeight)
+                    }
+                    .frame(width: timelineWidth, height: contentHeight)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color(white: 0.98))
+            .onAppear {
+                if !hasScrolledToToday && todayIndex != nil {
+                    hasScrolledToToday = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        scrollProxy.scrollTo("today", anchor: .center)
                     }
                 }
-                .offset(y: verticalScrollOffset)
-                .frame(width: configuration.labelColumnWidth, height: availableHeight, alignment: .top)
-                .clipped()
-                .background(
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 2, y: 0)
-                )
-                .offset(y: configuration.headerHeight)
             }
         }
     }
 }
 
-// MARK: - Scroll Offset Tracking
-
-private struct ScrollOffset: Equatable {
-    var x: CGFloat
-    var y: CGFloat
-}
-
-private struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: ScrollOffset = ScrollOffset(x: 0, y: 0)
-    static func reduce(value: inout ScrollOffset, nextValue: () -> ScrollOffset) {
-        value = nextValue()
-    }
-}
-
-// MARK: - Task Label View (for floating column)
+// MARK: - Task Label View
 
 struct TaskLabelView<Item: GanttTask>: View {
     let task: Item
@@ -174,14 +116,12 @@ struct TaskLabelView<Item: GanttTask>: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Circular progress indicator
             CircularProgressView(
                 progress: task.progress,
                 color: task.color,
                 size: 36
             )
 
-            // Task info
             VStack(alignment: .leading, spacing: 2) {
                 Text(task.title)
                     .font(.subheadline)
@@ -201,11 +141,11 @@ struct TaskLabelView<Item: GanttTask>: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 12)
-        .frame(height: configuration.rowHeight)
+        .frame(width: configuration.labelColumnWidth, height: configuration.rowHeight)
     }
 }
 
-// MARK: - Task Bar Row (bars only, no labels)
+// MARK: - Task Bar Row
 
 struct GanttTaskBarRow<Item: GanttTask>: View {
     let task: Item
@@ -269,25 +209,21 @@ private struct TaskBar: View {
     let barHeight: CGFloat
 
     private var progressText: String {
-        let percentage = Int(progress * 100)
-        return "\(percentage)%"
+        "\(Int(progress * 100))%"
     }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // Background bar
                 RoundedRectangle(cornerRadius: configuration.barCornerRadius)
                     .fill(color.opacity(0.3))
 
-                // Progress fill
                 if progress > 0 {
                     RoundedRectangle(cornerRadius: configuration.barCornerRadius)
                         .fill(color)
                         .frame(width: geometry.size.width * min(progress, 1.0))
                 }
 
-                // Progress label
                 if configuration.showProgressLabel && progress > 0 {
                     Text(progressText)
                         .font(configuration.progressLabelFont)
@@ -299,10 +235,9 @@ private struct TaskBar: View {
     }
 }
 
-// MARK: - View Modifier for Configuration
+// MARK: - Configuration Modifier
 
 public extension GanttChart {
-    /// Customize the Gantt chart configuration
     func configuration(_ configuration: GanttChartConfiguration) -> GanttChart {
         GanttChart(tasks: tasks, dateRange: dateRange, configuration: configuration)
     }
