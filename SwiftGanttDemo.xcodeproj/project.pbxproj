@@ -12,7 +12,19 @@
 		A1000005233456780000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006233456780000001 /* Assets.xcassets */; };
 		A1000007233456780000001 /* SwiftGantt in Frameworks */ = {isa = PBXBuildFile; productRef = A1000008233456780000001 /* SwiftGantt */; };
 		A1000009233456780000001 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000A233456780000001 /* SampleData.swift */; };
+		B1000001233456780000001 /* SwiftGantt in Frameworks */ = {isa = PBXBuildFile; productRef = B1000002233456780000001 /* SwiftGantt */; };
+		C1000001233456780000001 /* SwiftGanttDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1000002233456780000001 /* SwiftGanttDemoTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B1000003233456780000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000014233456780000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1000010233456780000001;
+			remoteInfo = SwiftGanttDemo;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A1000002233456780000001 /* SwiftGanttDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftGanttDemoApp.swift; sourceTree = "<group>"; };
@@ -20,6 +32,8 @@
 		A1000006233456780000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A100000B233456780000001 /* SwiftGanttDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftGanttDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A100000A233456780000001 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
+		B1000004233456780000001 /* SwiftGanttDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftGanttDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1000002233456780000001 /* SwiftGanttDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftGanttDemoTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +45,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1000005233456780000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1000001233456780000001 /* SwiftGantt in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -38,8 +60,17 @@
 			isa = PBXGroup;
 			children = (
 				A100000E233456780000001 /* SwiftGanttDemo */,
+				C1000003233456780000001 /* SwiftGanttDemoTests */,
 				A100000F233456780000001 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		C1000003233456780000001 /* SwiftGanttDemoTests */ = {
+			isa = PBXGroup;
+			children = (
+				C1000002233456780000001 /* SwiftGanttDemoTests.swift */,
+			);
+			path = SwiftGanttDemoTests;
 			sourceTree = "<group>";
 		};
 		A100000E233456780000001 /* SwiftGanttDemo */ = {
@@ -57,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				A100000B233456780000001 /* SwiftGanttDemo.app */,
+				B1000004233456780000001 /* SwiftGanttDemoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,6 +116,27 @@
 			productReference = A100000B233456780000001 /* SwiftGanttDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B1000006233456780000001 /* SwiftGanttDemoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1000007233456780000001 /* Build configuration list for PBXNativeTarget "SwiftGanttDemoTests" */;
+			buildPhases = (
+				B1000008233456780000001 /* Sources */,
+				B1000005233456780000001 /* Frameworks */,
+				B1000009233456780000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B100000A233456780000001 /* PBXTargetDependency */,
+			);
+			name = SwiftGanttDemoTests;
+			packageProductDependencies = (
+				B1000002233456780000001 /* SwiftGantt */,
+			);
+			productName = SwiftGanttDemoTests;
+			productReference = B1000004233456780000001 /* SwiftGanttDemoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -96,6 +149,10 @@
 				TargetAttributes = {
 					A1000010233456780000001 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					B1000006233456780000001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A1000010233456780000001;
 					};
 				};
 			};
@@ -116,6 +173,7 @@
 			projectRoot = "";
 			targets = (
 				A1000010233456780000001 /* SwiftGanttDemo */,
+				B1000006233456780000001 /* SwiftGanttDemoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -126,6 +184,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005233456780000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1000009233456780000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,7 +207,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1000008233456780000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1000001233456780000001 /* SwiftGanttDemoTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B100000A233456780000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1000010233456780000001 /* SwiftGanttDemo */;
+			targetProxy = B1000003233456780000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A1000017233456780000001 /* Debug */ = {
@@ -333,6 +414,68 @@
 			};
 			name = Release;
 		};
+		B100000B233456780000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SwiftGanttDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftGanttDemo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftGanttDemo";
+			};
+			name = Debug;
+		};
+		B100000C233456780000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SwiftGanttDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftGanttDemo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftGanttDemo";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -354,6 +497,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B1000007233456780000001 /* Build configuration list for PBXNativeTarget "SwiftGanttDemoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B100000B233456780000001 /* Debug */,
+				B100000C233456780000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -365,6 +517,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		A1000008233456780000001 /* SwiftGantt */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftGantt;
+		};
+		B1000002233456780000001 /* SwiftGantt */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftGantt;
 		};
