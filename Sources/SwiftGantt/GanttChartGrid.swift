@@ -23,8 +23,14 @@ class GanttGridView: UIView {
     private var cachedWeekendCGColor: CGColor?
     private var cachedTodayCGColor: CGColor?
 
-    // Track last configuration to avoid unnecessary redraws
-    private var lastConfigHash: Int = 0
+    // Use CATiledLayer for large content rendering
+    override class var layerClass: AnyClass {
+        return CATiledLayer.self
+    }
+
+    private var tiledLayer: CATiledLayer {
+        return layer as! CATiledLayer
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -39,12 +45,12 @@ class GanttGridView: UIView {
     private func configureLayer() {
         backgroundColor = .clear
         isOpaque = false
-        // Enable async drawing for smoother scrolling
-        layer.drawsAsynchronously = true
-        // Rasterize for better scroll performance
-        layer.shouldRasterize = true
-        layer.rasterizationScale = UIScreen.main.scale
-        contentMode = .redraw
+
+        // Configure tiled layer for efficient large content rendering
+        // Tile size should be reasonable - 512x512 is a good balance
+        tiledLayer.tileSize = CGSize(width: 512, height: 512)
+        tiledLayer.levelsOfDetail = 1
+        tiledLayer.levelsOfDetailBias = 0
     }
 
     func invalidateColorCaches() {
@@ -53,30 +59,14 @@ class GanttGridView: UIView {
         cachedTodayCGColor = nil
     }
 
-    private func currentConfigHash() -> Int {
-        var hasher = Hasher()
-        hasher.combine(totalDays)
-        hasher.combine(rowCount)
-        hasher.combine(dayColumnWidth)
-        hasher.combine(rowHeight)
-        hasher.combine(showVerticalGrid)
-        hasher.combine(showHorizontalGrid)
-        hasher.combine(showWeekendHighlight)
-        hasher.combine(showTodayMarker)
-        hasher.combine(weekendIndices)
-        hasher.combine(todayIndex)
-        return hasher.finalize()
+    func updateConfiguration() {
+        invalidateColorCaches()
+        // For CATiledLayer, we need to clear and redraw all tiles
+        tiledLayer.contents = nil
+        tiledLayer.setNeedsDisplay()
     }
 
-    func setNeedsDisplayIfChanged() {
-        let newHash = currentConfigHash()
-        if newHash != lastConfigHash {
-            lastConfigHash = newHash
-            invalidateColorCaches()
-            setNeedsDisplay()
-        }
-    }
-
+    // CATiledLayer calls draw(in:) on background threads for each tile
     override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         guard totalDays > 0 && rowCount > 0 else { return }
@@ -84,26 +74,20 @@ class GanttGridView: UIView {
         let totalHeight = CGFloat(rowCount) * rowHeight
         let totalWidth = CGFloat(totalDays) * dayColumnWidth
 
-        // Calculate visible range to only draw what's needed
+        // Calculate visible range for this tile
         let visibleMinCol = max(0, Int(floor(rect.minX / dayColumnWidth)))
         let visibleMaxCol = min(totalDays - 1, Int(ceil(rect.maxX / dayColumnWidth)))
         let visibleMinRow = max(0, Int(floor(rect.minY / rowHeight)))
         let visibleMaxRow = min(rowCount - 1, Int(ceil(rect.maxY / rowHeight)))
 
-        // Cache CGColors lazily
-        if cachedWeekendCGColor == nil {
-            cachedWeekendCGColor = weekendColor.cgColor
-        }
-        if cachedTodayCGColor == nil {
-            cachedTodayCGColor = todayMarkerColor.withAlphaComponent(0.1).cgColor
-        }
-        if cachedGridCGColor == nil {
-            cachedGridCGColor = gridColor.cgColor
-        }
+        // Get CGColors (these are thread-safe once created)
+        let weekendCGColor = weekendColor.cgColor
+        let todayCGColor = todayMarkerColor.withAlphaComponent(0.1).cgColor
+        let gridCGColor = gridColor.cgColor
 
-        // Draw weekend shading - only visible columns
+        // Draw weekend shading - only visible columns in this tile
         if showWeekendHighlight {
-            context.setFillColor(cachedWeekendCGColor!)
+            context.setFillColor(weekendCGColor)
             for index in visibleMinCol...visibleMaxCol where weekendIndices.contains(index) {
                 let x = CGFloat(index) * dayColumnWidth
                 let fillRect = CGRect(x: x, y: rect.minY, width: dayColumnWidth, height: rect.height)
@@ -111,21 +95,21 @@ class GanttGridView: UIView {
             }
         }
 
-        // Draw today highlight - only if visible
+        // Draw today highlight - only if visible in this tile
         if showTodayMarker, let index = todayIndex, index >= visibleMinCol && index <= visibleMaxCol {
-            context.setFillColor(cachedTodayCGColor!)
+            context.setFillColor(todayCGColor)
             let x = CGFloat(index) * dayColumnWidth
             let fillRect = CGRect(x: x, y: rect.minY, width: dayColumnWidth, height: rect.height)
             context.fill(fillRect)
         }
 
         // Draw grid lines using batched path for better performance
-        context.setStrokeColor(cachedGridCGColor!)
+        context.setStrokeColor(gridCGColor)
         context.setLineWidth(0.5)
 
         let path = CGMutablePath()
 
-        // Vertical grid lines - only visible range
+        // Vertical grid lines - only visible range in this tile
         if showVerticalGrid {
             let yStart = max(0, rect.minY)
             let yEnd = min(totalHeight, rect.maxY)
@@ -136,7 +120,7 @@ class GanttGridView: UIView {
             }
         }
 
-        // Horizontal grid lines - only visible range
+        // Horizontal grid lines - only visible range in this tile
         if showHorizontalGrid {
             let xStart = max(0, rect.minX)
             let xEnd = min(totalWidth, rect.maxX)
@@ -220,9 +204,12 @@ struct GanttChartGrid: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: GanttGridView, context: Context) {
+        let needsUpdate = uiView.rowCount != rowCount ||
+                          uiView.totalDays != computedTotalDays
         updateView(uiView)
-        // Only redraw if configuration actually changed
-        uiView.setNeedsDisplayIfChanged()
+        if needsUpdate {
+            uiView.updateConfiguration()
+        }
     }
 
     private func updateView(_ view: GanttGridView) {

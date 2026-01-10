@@ -349,14 +349,6 @@ public struct GanttChart<Item: GanttTask>: View {
                         }
                     ) {
                         ZStack(alignment: .topLeading) {
-                            // Grid
-                            GanttChartGrid(
-                                dateRange: dateRange,
-                                rowCount: tasks.count,
-                                configuration: configuration
-                            )
-                            .frame(width: timelineWidth, height: contentHeight)
-
                             // Task bars (virtualized - only renders visible rows + buffer)
                             VirtualizedRowContainer(
                                 items: tasks,
@@ -377,6 +369,13 @@ public struct GanttChart<Item: GanttTask>: View {
                                 .frame(height: contentHeight)
                         }
                         .frame(width: timelineWidth, height: contentHeight)
+                        .background(
+                            GanttChartGrid(
+                                dateRange: dateRange,
+                                rowCount: tasks.count,
+                                configuration: configuration
+                            )
+                        )
                     }
                 }
 
