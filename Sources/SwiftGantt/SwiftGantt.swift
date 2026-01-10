@@ -272,6 +272,7 @@ struct VerticalSyncScrollView<Content: View>: UIViewRepresentable {
 /// SwiftGantt - A Gantt chart component for SwiftUI
 public struct GanttChart<Item: GanttTask>: View {
     private let tasks: [Item]
+    private let dependencies: [GanttDependency]
     private let dateRange: ClosedRange<Date>
     private let configuration: GanttChartConfiguration
     private let onTaskTap: ((Item) -> Void)?
@@ -323,11 +324,13 @@ public struct GanttChart<Item: GanttTask>: View {
 
     public init(
         tasks: [Item],
+        dependencies: [GanttDependency] = [],
         dateRange: ClosedRange<Date>,
         configuration: GanttChartConfiguration = .default,
         onTaskTap: ((Item) -> Void)? = nil
     ) {
         self.tasks = tasks
+        self.dependencies = dependencies
         self.dateRange = dateRange
         self.configuration = configuration
         self.onTaskTap = onTaskTap
@@ -391,6 +394,17 @@ public struct GanttChart<Item: GanttTask>: View {
                                 ) {
                                     onTaskTap?(task)
                                 }
+                            }
+
+                            // Dependency lines
+                            if configuration.showDependencies && !dependencies.isEmpty {
+                                DependencyLayer(
+                                    dependencies: dependencies,
+                                    tasks: tasks,
+                                    dateRange: extendedDateRange,
+                                    configuration: configuration
+                                )
+                                .allowsHitTesting(false)
                             }
 
                             // Today marker
@@ -617,6 +631,6 @@ private struct TaskBar: View {
 
 public extension GanttChart {
     func configuration(_ configuration: GanttChartConfiguration) -> GanttChart {
-        GanttChart(tasks: tasks, dateRange: dateRange, configuration: configuration, onTaskTap: onTaskTap)
+        GanttChart(tasks: tasks, dependencies: dependencies, dateRange: dateRange, configuration: configuration, onTaskTap: onTaskTap)
     }
 }

@@ -2,14 +2,16 @@ import SwiftUI
 import SwiftGantt
 
 enum DatasetSize: String, CaseIterable {
+    case minimal = "2 Items"
     case demo = "Demo (35)"
     case small = "100 Items"
     case large = "30K Items"
 }
 
 struct ContentView: View {
-    @State private var selectedDataset: DatasetSize = .demo
-    @State private var tasks: [DemoTask] = SampleData.tasks
+    @State private var selectedDataset: DatasetSize = .minimal
+    @State private var tasks: [DemoTask] = SampleData.minimalTasks
+    @State private var dependencies: [GanttDependency] = SampleData.minimalDependencies
     @State private var isLoading = false
     @State private var scrollToTodayTrigger = UUID()
     @State private var selectedTask: DemoTask?
@@ -19,6 +21,7 @@ struct ContentView: View {
             ZStack {
                 GanttChart(
                     tasks: tasks,
+                    dependencies: dependencies,
                     dateRange: SampleData.dateRange
                 ) { task in
                     selectedTask = task
@@ -85,16 +88,24 @@ struct ContentView: View {
 
         DispatchQueue.global(qos: .userInitiated).async {
             let newTasks: [DemoTask]
+            let newDependencies: [GanttDependency]
             switch size {
+            case .minimal:
+                newTasks = SampleData.minimalTasks
+                newDependencies = SampleData.minimalDependencies
             case .demo:
                 newTasks = SampleData.tasks
+                newDependencies = []
             case .small:
                 newTasks = SampleData.generateLargeDataset(count: 100)
+                newDependencies = []
             case .large:
                 newTasks = SampleData.generateLargeDataset(count: 30_000)
+                newDependencies = []
             }
             DispatchQueue.main.async {
                 tasks = newTasks
+                dependencies = newDependencies
                 isLoading = false
             }
         }

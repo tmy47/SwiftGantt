@@ -50,6 +50,46 @@ enum SampleData {
         return start...end
     }
 
+    // Fixed IDs for minimal dataset (for dependency testing)
+    private static let minimalTaskIdA = UUID()
+    private static let minimalTaskIdB = UUID()
+
+    /// Minimal dataset with 2 tasks for testing
+    static var minimalTasks: [DemoTask] {
+        let start1 = calendar.date(byAdding: .day, value: -5, to: today)!
+        let end1 = calendar.date(byAdding: .day, value: 2, to: today)!
+        let start2 = calendar.date(byAdding: .day, value: 5, to: today)!
+        let end2 = calendar.date(byAdding: .day, value: 15, to: today)!
+
+        return [
+            DemoTask(
+                id: minimalTaskIdA,
+                title: "Task A",
+                subtitle: "First task",
+                startDate: start1,
+                endDate: end1,
+                progress: 0.75,
+                color: .blue
+            ),
+            DemoTask(
+                id: minimalTaskIdB,
+                title: "Task B",
+                subtitle: "Second task",
+                startDate: start2,
+                endDate: end2,
+                progress: 0.25,
+                color: .blue
+            )
+        ]
+    }
+
+    /// Minimal dependency: Task A -> Task B (end-to-start)
+    static var minimalDependencies: [GanttDependency] {
+        [
+            GanttDependency(fromId: minimalTaskIdA, toId: minimalTaskIdB, type: .endToStart)
+        ]
+    }
+
     private static func makeTask(
         title: String,
         startOffset: Int,

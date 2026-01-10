@@ -51,6 +51,17 @@ public struct GanttChartConfiguration {
     /// Higher values improve scroll smoothness but use more memory
     public var virtualizationBuffer: Int
 
+    // MARK: - Dependency Settings
+
+    /// Whether to show dependency lines
+    public var showDependencies: Bool
+
+    /// Color of dependency lines
+    public var dependencyLineColor: Color
+
+    /// Width of dependency lines
+    public var dependencyLineWidth: CGFloat
+
     public init(
         rowHeight: CGFloat = 60,
         labelColumnWidth: CGFloat = 280,
@@ -67,7 +78,10 @@ public struct GanttChartConfiguration {
         headerHeight: CGFloat = 50,
         showProgressLabel: Bool = true,
         progressLabelFont: Font = .caption.weight(.medium),
-        virtualizationBuffer: Int = 20
+        virtualizationBuffer: Int = 20,
+        showDependencies: Bool = true,
+        dependencyLineColor: Color = .gray,
+        dependencyLineWidth: CGFloat = 1.5
     ) {
         self.rowHeight = rowHeight
         self.labelColumnWidth = labelColumnWidth
@@ -85,6 +99,9 @@ public struct GanttChartConfiguration {
         self.showProgressLabel = showProgressLabel
         self.progressLabelFont = progressLabelFont
         self.virtualizationBuffer = virtualizationBuffer
+        self.showDependencies = showDependencies
+        self.dependencyLineColor = dependencyLineColor
+        self.dependencyLineWidth = dependencyLineWidth
     }
 
     /// Default configuration
