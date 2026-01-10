@@ -48,7 +48,48 @@ struct DependencyPathCalculator<Task: GanttTask> {
 
     // MARK: - Path Generation
 
-    /// Generate a path for a dependency using straight lines
+    /// Corner radius for curved dependency lines
+    private var cornerRadius: CGFloat { 8 }
+
+    /// Add a rounded corner to the path
+    /// - Parameters:
+    ///   - path: The path to modify
+    ///   - corner: The corner point
+    ///   - from: Direction coming from
+    ///   - to: Direction going to
+    private func addRoundedCorner(to path: inout Path, at corner: CGPoint, from: CGPoint, toward: CGPoint) {
+        let radius = cornerRadius
+
+        // Calculate the direction vectors
+        let fromDx = corner.x - from.x
+        let fromDy = corner.y - from.y
+        let toDx = toward.x - corner.x
+        let toDy = toward.y - corner.y
+
+        // Normalize and scale by radius
+        let fromLen = sqrt(fromDx * fromDx + fromDy * fromDy)
+        let toLen = sqrt(toDx * toDx + toDy * toDy)
+
+        guard fromLen > 0 && toLen > 0 else {
+            path.addLine(to: corner)
+            return
+        }
+
+        // Points where the curve starts and ends
+        let curveStart = CGPoint(
+            x: corner.x - (fromDx / fromLen) * min(radius, fromLen / 2),
+            y: corner.y - (fromDy / fromLen) * min(radius, fromLen / 2)
+        )
+        let curveEnd = CGPoint(
+            x: corner.x + (toDx / toLen) * min(radius, toLen / 2),
+            y: corner.y + (toDy / toLen) * min(radius, toLen / 2)
+        )
+
+        path.addLine(to: curveStart)
+        path.addQuadCurve(to: curveEnd, control: corner)
+    }
+
+    /// Generate a path for a dependency with rounded corners
     func path(for dependency: GanttDependency) -> Path? {
         guard let fromIndex = rowIndex(for: dependency.fromId),
               let toIndex = rowIndex(for: dependency.toId),
@@ -117,29 +158,39 @@ struct DependencyPathCalculator<Task: GanttTask> {
 
         // Simple path: source ends before target starts, and no blocking tasks
         if startX < endX && !hasBlockingTask {
-            // Simple 3-segment path:
+            // Simple 3-segment path with rounded corners:
             // 1. Exit right from source
-            // 2. Drop down to target row
+            // 2. Drop down to target row (with curves)
             // 3. Go right to target
-            path.move(to: CGPoint(x: startX, y: fromY))
-            path.addLine(to: CGPoint(x: exitX, y: fromY))       // 1. Horizontal exit right
-            path.addLine(to: CGPoint(x: exitX, y: toY))         // 2. Down to target row
-            path.addLine(to: CGPoint(x: endX, y: toY))          // 3. Approach to target
+            let p0 = CGPoint(x: startX, y: fromY)
+            let p1 = CGPoint(x: exitX, y: fromY)      // Corner 1
+            let p2 = CGPoint(x: exitX, y: toY)        // Corner 2
+            let p3 = CGPoint(x: endX, y: toY)
+
+            path.move(to: p0)
+            addRoundedCorner(to: &path, at: p1, from: p0, toward: p2)
+            addRoundedCorner(to: &path, at: p2, from: p1, toward: p3)
+            path.addLine(to: p3)
             return path
         }
 
         // Complex path: need to route around blocking tasks
-        // Find the leftmost task start position to route around
-        var minTaskStartX = endX
-        for rowIndex in minRow...maxRow {
+        // Find the best drop position - as close to target as possible while avoiding task bars
+        var dropX = endX - margin  // Ideal: just left of target
+
+        // Check if dropX would hit any task bars in intervening rows
+        // If so, move it left to clear them
+        for rowIndex in (minRow + 1)..<maxRow {
             if rowIndex < tasks.count {
-                let taskStart = taskStartX(for: tasks[rowIndex])
-                minTaskStartX = min(minTaskStartX, taskStart)
+                let task = tasks[rowIndex]
+                let taskStart = taskStartX(for: task)
+                let taskEnd = taskEndX(for: task)
+                // If dropX falls within this task's span, move left of it
+                if dropX >= taskStart && dropX <= taskEnd {
+                    dropX = taskStart - margin
+                }
             }
         }
-
-        // 5-segment path routing around obstacles:
-        let safeX = minTaskStartX - margin             // Safe X position left of all tasks
 
         // Route horizontal segment in the gutter between rows, not through task bars
         // Use the row boundary (edge between rows) for the horizontal travel
@@ -152,12 +203,23 @@ struct DependencyPathCalculator<Task: GanttTask> {
             gutterY = CGFloat(fromIndex) * configuration.rowHeight
         }
 
-        path.move(to: CGPoint(x: startX, y: fromY))
-        path.addLine(to: CGPoint(x: exitX, y: fromY))       // 1. Horizontal exit right
-        path.addLine(to: CGPoint(x: exitX, y: gutterY))     // 2. Down/up to gutter
-        path.addLine(to: CGPoint(x: safeX, y: gutterY))     // 3. Left to safe position (in gutter)
-        path.addLine(to: CGPoint(x: safeX, y: toY))         // 4. Down/up to target row
-        path.addLine(to: CGPoint(x: endX, y: toY))          // 5. Approach from left
+        // Ensure dropX is not to the right of exitX (would create backwards line)
+        let safeX = min(exitX, dropX)
+
+        // 5-segment path with rounded corners
+        let p0 = CGPoint(x: startX, y: fromY)
+        let p1 = CGPoint(x: exitX, y: fromY)       // Corner 1
+        let p2 = CGPoint(x: exitX, y: gutterY)     // Corner 2
+        let p3 = CGPoint(x: safeX, y: gutterY)     // Corner 3
+        let p4 = CGPoint(x: safeX, y: toY)         // Corner 4
+        let p5 = CGPoint(x: endX, y: toY)
+
+        path.move(to: p0)
+        addRoundedCorner(to: &path, at: p1, from: p0, toward: p2)
+        addRoundedCorner(to: &path, at: p2, from: p1, toward: p3)
+        addRoundedCorner(to: &path, at: p3, from: p2, toward: p4)
+        addRoundedCorner(to: &path, at: p4, from: p3, toward: p5)
+        path.addLine(to: p5)
 
         return path
     }
