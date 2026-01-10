@@ -47,6 +47,10 @@ public struct GanttChartConfiguration {
     /// Font for the progress label
     public var progressLabelFont: Font
 
+    /// Number of rows to render above/below visible area for smooth scrolling
+    /// Higher values improve scroll smoothness but use more memory
+    public var virtualizationBuffer: Int
+
     public init(
         rowHeight: CGFloat = 60,
         labelColumnWidth: CGFloat = 280,
@@ -62,7 +66,8 @@ public struct GanttChartConfiguration {
         barHeightRatio: CGFloat = 0.45,
         headerHeight: CGFloat = 50,
         showProgressLabel: Bool = true,
-        progressLabelFont: Font = .caption.weight(.medium)
+        progressLabelFont: Font = .caption.weight(.medium),
+        virtualizationBuffer: Int = 20
     ) {
         self.rowHeight = rowHeight
         self.labelColumnWidth = labelColumnWidth
@@ -79,6 +84,7 @@ public struct GanttChartConfiguration {
         self.headerHeight = headerHeight
         self.showProgressLabel = showProgressLabel
         self.progressLabelFont = progressLabelFont
+        self.virtualizationBuffer = virtualizationBuffer
     }
 
     /// Default configuration

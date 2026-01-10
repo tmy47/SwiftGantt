@@ -130,4 +130,78 @@ enum SampleData {
             makeTask(title: "Punch List and Closeout", startOffset: 62, duration: 10, progress: 0.0, color: .gray, location: "All Areas"),
         ]
     }
+
+    // MARK: - Large Dataset Generator for Performance Testing
+
+    private static let taskPrefixes = [
+        "Install", "Configure", "Review", "Design", "Build", "Test", "Deploy",
+        "Inspect", "Repair", "Upgrade", "Replace", "Audit", "Document", "Train"
+    ]
+
+    private static let taskSubjects = [
+        "Foundation", "Structure", "Electrical", "Plumbing", "HVAC", "Roofing",
+        "Flooring", "Walls", "Windows", "Doors", "Lighting", "Fire System",
+        "Security", "Network", "Landscaping", "Parking", "Elevator", "Stairs"
+    ]
+
+    private static let locations = [
+        "Building A", "Building B", "North Wing", "South Wing", "East Section",
+        "West Section", "Basement", "Ground Floor", "Mezzanine", "Rooftop"
+    ]
+
+    private static let taskColors: [Color] = [
+        .blue, .green, .orange, .purple, .red, .cyan, .indigo, .mint, .pink, .teal
+    ]
+
+    /// Generates a large dataset for performance testing
+    /// - Parameter count: Number of tasks to generate (default: 30,000)
+    /// - Returns: Array of DemoTask instances spread across the date range
+    static func generateLargeDataset(count: Int = 30_000) -> [DemoTask] {
+        // Spread tasks across 2 years (365 * 2 = 730 days)
+        let totalDays = 730
+        var tasks: [DemoTask] = []
+        tasks.reserveCapacity(count)
+
+        for i in 0..<count {
+            // Distribute tasks evenly across the timeline
+            let baseOffset = (i * totalDays / count) - (totalDays / 2)
+            // Add some randomness to start offset
+            let randomOffset = (i.hashValue % 30) - 15
+            let startOffset = baseOffset + randomOffset
+
+            // Duration between 3 and 30 days
+            let duration = 3 + (i.hashValue % 28)
+
+            // Progress: completed for past tasks, partial for current, 0 for future
+            let progress: Double
+            if startOffset < -duration {
+                progress = 1.0
+            } else if startOffset < 0 {
+                progress = Double(abs(startOffset)) / Double(duration)
+            } else {
+                progress = 0.0
+            }
+
+            // Generate task name and details
+            let prefix = taskPrefixes[i % taskPrefixes.count]
+            let subject = taskSubjects[(i / taskPrefixes.count) % taskSubjects.count]
+            let location = locations[(i / (taskPrefixes.count * taskSubjects.count)) % locations.count]
+            let color = taskColors[i % taskColors.count]
+
+            let title = "\(prefix) \(subject) #\(i + 1)"
+            let start = calendar.date(byAdding: .day, value: startOffset, to: today)!
+            let end = calendar.date(byAdding: .day, value: startOffset + duration, to: today)!
+
+            tasks.append(DemoTask(
+                title: title,
+                subtitle: "\(formatDateRange(start: start, end: end)) • \(duration)d • \(location)",
+                startDate: start,
+                endDate: end,
+                progress: min(1.0, max(0.0, progress)),
+                color: color
+            ))
+        }
+
+        return tasks
+    }
 }

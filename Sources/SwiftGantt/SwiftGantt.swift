@@ -308,23 +308,32 @@ public struct GanttChart<Item: GanttTask>: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            let centeredOffset: CGPoint? = {
+            let initialOffset: CGPoint? = {
                 guard let index = todayIndex else { return nil }
                 let todayX = CGFloat(index) * configuration.dayColumnWidth
-                let centerX = max(0, todayX - geometry.size.width / 2 + configuration.dayColumnWidth / 2)
-                return CGPoint(x: centerX, y: 0)
+                // Position today at the right edge of the label column
+                let offsetX = todayX - configuration.labelColumnWidth
+                // Clamp to valid scroll range
+                let maxOffsetX = timelineWidth - geometry.size.width
+                let clampedX = max(0, min(offsetX, maxOffsetX))
+                return CGPoint(x: clampedX, y: 0)
             }()
 
             let chartAreaHeight = geometry.size.height - configuration.headerHeight - 1
 
             ZStack(alignment: .topLeading) {
                 VStack(spacing: 0) {
-                    // Fixed dates header (scrolls horizontally only, extends full width)
-                    GanttChartHeader(dateRange: dateRange, configuration: configuration)
-                        .frame(width: timelineWidth, height: configuration.headerHeight)
-                        .offset(x: -scrollOffset.x)
-                        .frame(width: geometry.size.width, alignment: .leading)
-                        .clipped()
+                    // Fixed dates header (scrolls horizontally only, virtualized)
+                    GanttChartHeader(
+                        dateRange: dateRange,
+                        configuration: configuration,
+                        scrollOffset: scrollOffset.x,
+                        viewportWidth: geometry.size.width
+                    )
+                    .frame(width: timelineWidth, height: configuration.headerHeight)
+                    .offset(x: -scrollOffset.x)
+                    .frame(width: geometry.size.width, alignment: .leading)
+                    .clipped()
 
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
@@ -333,7 +342,7 @@ public struct GanttChart<Item: GanttTask>: View {
                     // Scrollable chart content
                     DirectionalLockScrollView(
                         contentSize: CGSize(width: timelineWidth, height: contentHeight),
-                        initialOffset: centeredOffset,
+                        initialOffset: initialOffset,
                         scrollStateController: scrollStateController,
                         onOffsetChange: { offset in
                             scrollOffset = offset
@@ -348,15 +357,19 @@ public struct GanttChart<Item: GanttTask>: View {
                             )
                             .frame(width: timelineWidth, height: contentHeight)
 
-                            // Task bars
-                            VStack(spacing: 0) {
-                                ForEach(tasks) { task in
-                                    GanttTaskBarRow(
-                                        task: task,
-                                        dateRange: dateRange,
-                                        configuration: configuration
-                                    )
-                                }
+                            // Task bars (virtualized - only renders visible rows + buffer)
+                            VirtualizedRowContainer(
+                                items: tasks,
+                                scrollOffset: scrollOffset.y,
+                                viewportHeight: chartAreaHeight,
+                                rowHeight: configuration.rowHeight,
+                                bufferCount: configuration.virtualizationBuffer
+                            ) { task, _ in
+                                GanttTaskBarRow(
+                                    task: task,
+                                    dateRange: dateRange,
+                                    configuration: configuration
+                                )
                             }
 
                             // Today marker
@@ -373,16 +386,20 @@ public struct GanttChart<Item: GanttTask>: View {
                     Color.clear
                         .frame(height: configuration.headerHeight + 1)
 
-                    // Task labels (synced with vertical scroll - now scrollable)
+                    // Task labels (synced with vertical scroll - virtualized)
                     VerticalSyncScrollView(
                         contentHeight: contentHeight,
                         currentOffset: scrollOffset.y,
                         scrollStateController: scrollStateController
                     ) {
-                        VStack(spacing: 0) {
-                            ForEach(tasks) { task in
-                                TaskLabelView(task: task, configuration: configuration)
-                            }
+                        VirtualizedRowContainer(
+                            items: tasks,
+                            scrollOffset: scrollOffset.y,
+                            viewportHeight: chartAreaHeight,
+                            rowHeight: configuration.rowHeight,
+                            bufferCount: configuration.virtualizationBuffer
+                        ) { task, _ in
+                            TaskLabelView(task: task, configuration: configuration)
                         }
                     }
                     .frame(height: chartAreaHeight)
