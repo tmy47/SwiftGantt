@@ -169,8 +169,8 @@ enum SampleData {
             let randomOffset = (i.hashValue % 30) - 15
             let startOffset = baseOffset + randomOffset
 
-            // Duration between 3 and 30 days
-            let duration = 3 + (i.hashValue % 28)
+            // Duration between 3 and 30 days (use abs since hashValue can be negative)
+            let duration = 3 + abs(i.hashValue % 28)
 
             // Progress: completed for past tasks, partial for current, 0 for future
             let progress: Double
