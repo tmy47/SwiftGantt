@@ -13,7 +13,7 @@ class ScrollStateController: ObservableObject {
         scrollView.setContentOffset(newOffset, animated: animated)
     }
 
-    func setHorizontalOffset(_ x: CGFloat, animated: Bool = true) {
+    func setHorizontalOffset(_ x: CGFloat, animated: Bool = false) {
         guard let scrollView = scrollView else { return }
         let maxX = max(0, scrollView.contentSize.width - scrollView.bounds.width)
         let clampedX = max(0, min(x, maxX))
@@ -280,9 +280,16 @@ public struct GanttChart<Item: GanttTask>: View {
     @State private var scrollOffset: CGPoint = .zero
     @StateObject private var scrollStateController = ScrollStateController()
 
+    /// Extended date range with 1-year buffer before and after
+    private var extendedDateRange: ClosedRange<Date> {
+        let extendedStart = calendar.date(byAdding: .year, value: -1, to: dateRange.lowerBound)!
+        let extendedEnd = calendar.date(byAdding: .year, value: 1, to: dateRange.upperBound)!
+        return extendedStart...extendedEnd
+    }
+
     private var totalDays: Int {
-        let start = calendar.startOfDay(for: dateRange.lowerBound)
-        let end = calendar.startOfDay(for: dateRange.upperBound)
+        let start = calendar.startOfDay(for: extendedDateRange.lowerBound)
+        let end = calendar.startOfDay(for: extendedDateRange.upperBound)
         return (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
     }
 
@@ -296,8 +303,8 @@ public struct GanttChart<Item: GanttTask>: View {
 
     private var todayIndex: Int? {
         let today = calendar.startOfDay(for: Date())
-        let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
-        let rangeEnd = calendar.startOfDay(for: dateRange.upperBound)
+        let rangeStart = calendar.startOfDay(for: extendedDateRange.lowerBound)
+        let rangeEnd = calendar.startOfDay(for: extendedDateRange.upperBound)
 
         guard today >= rangeStart && today <= rangeEnd else { return nil }
 
@@ -306,7 +313,7 @@ public struct GanttChart<Item: GanttTask>: View {
 
     /// Calculate the X offset for a task's start date
     private func taskStartOffset(for task: Item) -> CGFloat {
-        let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
+        let rangeStart = calendar.startOfDay(for: extendedDateRange.lowerBound)
         let taskStart = calendar.startOfDay(for: task.startDate)
         let days = calendar.dateComponents([.day], from: rangeStart, to: taskStart).day ?? 0
         return CGFloat(days) * configuration.dayColumnWidth
@@ -341,7 +348,7 @@ public struct GanttChart<Item: GanttTask>: View {
                 VStack(spacing: 0) {
                     // Fixed dates header (scrolls horizontally only, virtualized)
                     GanttChartHeader(
-                        dateRange: dateRange,
+                        dateRange: extendedDateRange,
                         configuration: configuration,
                         scrollOffset: scrollOffset.x,
                         viewportWidth: geometry.size.width
@@ -375,19 +382,19 @@ public struct GanttChart<Item: GanttTask>: View {
                             ) { task, _ in
                                 GanttTaskBarRow(
                                     task: task,
-                                    dateRange: dateRange,
+                                    dateRange: extendedDateRange,
                                     configuration: configuration
                                 )
                             }
 
                             // Today marker
-                            TodayMarkerLine(dateRange: dateRange, configuration: configuration)
+                            TodayMarkerLine(dateRange: extendedDateRange, configuration: configuration)
                                 .frame(height: contentHeight)
                         }
                         .frame(width: timelineWidth, height: contentHeight)
                         .background(
                             GanttChartGrid(
-                                dateRange: dateRange,
+                                dateRange: extendedDateRange,
                                 rowCount: tasks.count,
                                 configuration: configuration
                             )
