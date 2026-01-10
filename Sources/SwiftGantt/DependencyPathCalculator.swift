@@ -83,7 +83,7 @@ struct DependencyPathCalculator<Task: GanttTask> {
         }
 
         var path = Path()
-        let exitMargin: CGFloat = 12
+        let margin: CGFloat = 12
 
         // Same row - simple horizontal line
         if fromIndex == toIndex {
@@ -92,17 +92,72 @@ struct DependencyPathCalculator<Task: GanttTask> {
             return path
         }
 
-        // Routing pattern:
-        // 1. Exit source horizontally (small margin)
-        // 2. Drop down/up vertically to target row
-        // 3. Go horizontally to target
+        // Check if there's a clear path: source ends before target starts
+        // AND no intervening tasks block the vertical drop
+        let minRow = min(fromIndex, toIndex)
+        let maxRow = max(fromIndex, toIndex)
 
-        let exitX = startX + exitMargin
+        // Find if any task between source and target would block a vertical line at exitX
+        let exitX = startX + margin
+        var hasBlockingTask = false
+
+        // Check rows BETWEEN source and target (exclusive of source, inclusive of target for end position)
+        for rowIndex in (minRow + 1)...maxRow {
+            if rowIndex < tasks.count {
+                let task = tasks[rowIndex]
+                let taskStart = taskStartX(for: task)
+                let taskEnd = taskEndX(for: task)
+                // If exitX falls within a task's horizontal span, it's blocking
+                if exitX >= taskStart && exitX <= taskEnd {
+                    hasBlockingTask = true
+                    break
+                }
+            }
+        }
+
+        // Simple path: source ends before target starts, and no blocking tasks
+        if startX < endX && !hasBlockingTask {
+            // Simple 3-segment path:
+            // 1. Exit right from source
+            // 2. Drop down to target row
+            // 3. Go right to target
+            path.move(to: CGPoint(x: startX, y: fromY))
+            path.addLine(to: CGPoint(x: exitX, y: fromY))       // 1. Horizontal exit right
+            path.addLine(to: CGPoint(x: exitX, y: toY))         // 2. Down to target row
+            path.addLine(to: CGPoint(x: endX, y: toY))          // 3. Approach to target
+            return path
+        }
+
+        // Complex path: need to route around blocking tasks
+        // Find the leftmost task start position to route around
+        var minTaskStartX = endX
+        for rowIndex in minRow...maxRow {
+            if rowIndex < tasks.count {
+                let taskStart = taskStartX(for: tasks[rowIndex])
+                minTaskStartX = min(minTaskStartX, taskStart)
+            }
+        }
+
+        // 5-segment path routing around obstacles:
+        let safeX = minTaskStartX - margin             // Safe X position left of all tasks
+
+        // Route horizontal segment in the gutter between rows, not through task bars
+        // Use the row boundary (edge between rows) for the horizontal travel
+        let gutterY: CGFloat
+        if toIndex > fromIndex {
+            // Going down: use bottom edge of source row
+            gutterY = CGFloat(fromIndex + 1) * configuration.rowHeight
+        } else {
+            // Going up: use top edge of source row
+            gutterY = CGFloat(fromIndex) * configuration.rowHeight
+        }
 
         path.move(to: CGPoint(x: startX, y: fromY))
-        path.addLine(to: CGPoint(x: exitX, y: fromY))   // Horizontal exit
-        path.addLine(to: CGPoint(x: exitX, y: toY))     // Vertical to target row
-        path.addLine(to: CGPoint(x: endX, y: toY))      // Horizontal to target
+        path.addLine(to: CGPoint(x: exitX, y: fromY))       // 1. Horizontal exit right
+        path.addLine(to: CGPoint(x: exitX, y: gutterY))     // 2. Down/up to gutter
+        path.addLine(to: CGPoint(x: safeX, y: gutterY))     // 3. Left to safe position (in gutter)
+        path.addLine(to: CGPoint(x: safeX, y: toY))         // 4. Down/up to target row
+        path.addLine(to: CGPoint(x: endX, y: toY))          // 5. Approach from left
 
         return path
     }

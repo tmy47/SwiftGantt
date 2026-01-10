@@ -95,7 +95,7 @@ struct ContentView: View {
                 newDependencies = SampleData.minimalDependencies
             case .demo:
                 newTasks = SampleData.tasks
-                newDependencies = []
+                newDependencies = SampleData.demoDependencies
             case .small:
                 newTasks = SampleData.generateLargeDataset(count: 100)
                 newDependencies = []
