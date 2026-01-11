@@ -217,7 +217,6 @@ struct TaskDetailView: View {
     @State private var editedStartDate: Date = Date()
     @State private var editedEndDate: Date = Date()
     @State private var editedProgress: Double = 0
-    @State private var hasChanges: Bool = false
 
     private var duration: Int {
         let calendar = Calendar.current
@@ -236,7 +235,7 @@ struct TaskDetailView: View {
                             .frame(width: 12, height: 12)
                         TextField("Title", text: $editedTitle)
                             .font(.headline)
-                            .onChange(of: editedTitle) { _ in hasChanges = true }
+                            .onSubmit { saveChanges() }
                     }
 
                     if let subtitle = task.subtitle {
@@ -248,9 +247,14 @@ struct TaskDetailView: View {
 
                 Section("Schedule") {
                     DatePicker("Start Date", selection: $editedStartDate, displayedComponents: .date)
-                        .onChange(of: editedStartDate) { _ in hasChanges = true }
-                    DatePicker("End Date", selection: $editedEndDate, displayedComponents: .date)
-                        .onChange(of: editedEndDate) { _ in hasChanges = true }
+                        .onChange(of: editedStartDate) { _ in
+                            if editedEndDate < editedStartDate {
+                                editedEndDate = editedStartDate
+                            }
+                            saveChanges()
+                        }
+                    DatePicker("End Date", selection: $editedEndDate, in: editedStartDate..., displayedComponents: .date)
+                        .onChange(of: editedEndDate) { _ in saveChanges() }
                     LabeledContent("Duration", value: "\(duration) days")
                 }
 
@@ -258,7 +262,7 @@ struct TaskDetailView: View {
                     HStack {
                         Slider(value: $editedProgress, in: 0...1, step: 0.05)
                             .tint(task.color)
-                            .onChange(of: editedProgress) { _ in hasChanges = true }
+                            .onChange(of: editedProgress) { _ in saveChanges() }
                         Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -269,17 +273,10 @@ struct TaskDetailView: View {
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveChanges()
+                    Button("Done") {
                         dismiss()
                     }
-                    .disabled(!hasChanges)
                 }
             }
         }
@@ -313,7 +310,6 @@ struct CDTaskDetailView: View {
     @State private var editedStartDate: Date = Date()
     @State private var editedEndDate: Date = Date()
     @State private var editedProgress: Double = 0
-    @State private var hasChanges: Bool = false
 
     private var duration: Int {
         let calendar = Calendar.current
@@ -332,7 +328,7 @@ struct CDTaskDetailView: View {
                             .frame(width: 12, height: 12)
                         TextField("Title", text: $editedTitle)
                             .font(.headline)
-                            .onChange(of: editedTitle) { _ in hasChanges = true }
+                            .onSubmit { saveChanges() }
                     }
 
                     if let subtitle = task.subtitle {
@@ -344,9 +340,14 @@ struct CDTaskDetailView: View {
 
                 Section("Schedule") {
                     DatePicker("Start Date", selection: $editedStartDate, displayedComponents: .date)
-                        .onChange(of: editedStartDate) { _ in hasChanges = true }
-                    DatePicker("End Date", selection: $editedEndDate, displayedComponents: .date)
-                        .onChange(of: editedEndDate) { _ in hasChanges = true }
+                        .onChange(of: editedStartDate) { _ in
+                            if editedEndDate < editedStartDate {
+                                editedEndDate = editedStartDate
+                            }
+                            saveChanges()
+                        }
+                    DatePicker("End Date", selection: $editedEndDate, in: editedStartDate..., displayedComponents: .date)
+                        .onChange(of: editedEndDate) { _ in saveChanges() }
                     LabeledContent("Duration", value: "\(duration) days")
                 }
 
@@ -354,7 +355,7 @@ struct CDTaskDetailView: View {
                     HStack {
                         Slider(value: $editedProgress, in: 0...1, step: 0.05)
                             .tint(task.color)
-                            .onChange(of: editedProgress) { _ in hasChanges = true }
+                            .onChange(of: editedProgress) { _ in saveChanges() }
                         Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -365,17 +366,10 @@ struct CDTaskDetailView: View {
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveChanges()
+                    Button("Done") {
                         dismiss()
                     }
-                    .disabled(!hasChanges)
                 }
             }
         }
