@@ -82,7 +82,7 @@ class GanttGridView: UIView {
 
         // Get CGColors (these are thread-safe once created)
         let weekendCGColor = weekendColor.cgColor
-        let todayCGColor = todayMarkerColor.withAlphaComponent(0.1).cgColor
+        let todayCGColor = UIColor.black.withAlphaComponent(0.1).cgColor
         let gridCGColor = gridColor.cgColor
 
         // Draw weekend shading - only visible columns in this tile
@@ -229,32 +229,3 @@ struct GanttChartGrid: UIViewRepresentable {
     }
 }
 
-// MARK: - Today Marker Line
-
-struct TodayMarkerLine: View {
-    let dateRange: ClosedRange<Date>
-    let configuration: GanttChartConfiguration
-
-    private let calendar = Calendar.current
-
-    private var todayOffset: CGFloat? {
-        let today = calendar.startOfDay(for: Date())
-        let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
-        let rangeEnd = calendar.startOfDay(for: dateRange.upperBound)
-
-        guard today >= rangeStart && today <= rangeEnd else { return nil }
-
-        let days = calendar.dateComponents([.day], from: rangeStart, to: today).day ?? 0
-        return CGFloat(days) * configuration.dayColumnWidth + configuration.dayColumnWidth / 2
-    }
-
-    var body: some View {
-        if configuration.showTodayMarker, let offset = todayOffset {
-            Rectangle()
-                .fill(configuration.todayMarkerColor)
-                .frame(width: 2)
-                .offset(x: offset)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-}

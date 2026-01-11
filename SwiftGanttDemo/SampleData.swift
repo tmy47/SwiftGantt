@@ -4,10 +4,10 @@ import SwiftGantt
 
 struct DemoTask: GanttTask {
     let id: UUID
-    let title: String
-    let subtitle: String?
-    let startDate: Date
-    let endDate: Date
+    var title: String
+    var subtitle: String?
+    var startDate: Date
+    var endDate: Date
     var progress: Double
     var color: Color
 
