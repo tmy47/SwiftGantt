@@ -14,6 +14,9 @@
 		A1000009233456780000001 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000A233456780000001 /* SampleData.swift */; };
 		B1000001233456780000001 /* SwiftGantt in Frameworks */ = {isa = PBXBuildFile; productRef = B1000002233456780000001 /* SwiftGantt */; };
 		C1000001233456780000001 /* SwiftGanttDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1000002233456780000001 /* SwiftGanttDemoTests.swift */; };
+		D1000001233456780000001 /* CDTask+GanttTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1000002233456780000001 /* CDTask+GanttTask.swift */; };
+		D1000003233456780000001 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1000004233456780000001 /* CoreDataStack.swift */; };
+		D1000005233456780000001 /* SwiftGanttDemo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D1000006233456780000001 /* SwiftGanttDemo.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +37,9 @@
 		A100000A233456780000001 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
 		B1000004233456780000001 /* SwiftGanttDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftGanttDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1000002233456780000001 /* SwiftGanttDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftGanttDemoTests.swift; sourceTree = "<group>"; };
+		D1000002233456780000001 /* CDTask+GanttTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CDTask+GanttTask.swift"; sourceTree = "<group>"; };
+		D1000004233456780000001 /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+		D1000007233456780000001 /* SwiftGanttDemo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SwiftGanttDemo.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +85,9 @@
 				A1000002233456780000001 /* SwiftGanttDemoApp.swift */,
 				A1000004233456780000001 /* ContentView.swift */,
 				A100000A233456780000001 /* SampleData.swift */,
+				D1000002233456780000001 /* CDTask+GanttTask.swift */,
+				D1000004233456780000001 /* CoreDataStack.swift */,
+				D1000006233456780000001 /* SwiftGanttDemo.xcdatamodeld */,
 				A1000006233456780000001 /* Assets.xcassets */,
 			);
 			path = SwiftGanttDemo;
@@ -204,6 +213,9 @@
 				A1000001233456780000001 /* SwiftGanttDemoApp.swift in Sources */,
 				A1000003233456780000001 /* ContentView.swift in Sources */,
 				A1000009233456780000001 /* SampleData.swift in Sources */,
+				D1000001233456780000001 /* CDTask+GanttTask.swift in Sources */,
+				D1000003233456780000001 /* CoreDataStack.swift in Sources */,
+				D1000005233456780000001 /* SwiftGanttDemo.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +537,19 @@
 			productName = SwiftGantt;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		D1000006233456780000001 /* SwiftGanttDemo.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				D1000007233456780000001 /* SwiftGanttDemo.xcdatamodel */,
+			);
+			currentVersion = D1000007233456780000001 /* SwiftGanttDemo.xcdatamodel */;
+			path = SwiftGanttDemo.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = A1000014233456780000001 /* Project object */;
 }
