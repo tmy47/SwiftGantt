@@ -25,10 +25,18 @@ struct DependencyLayer<Task: GanttTask>: View where Task.ID: Hashable {
                     )
                 }
 
-                // Draw the arrowhead
-                if let arrowPath = calculator.arrowPath(for: dependency) {
+                // Draw the start circle (at source task)
+                if let startCircle = calculator.startCirclePath(for: dependency) {
                     context.fill(
-                        arrowPath,
+                        startCircle,
+                        with: .color(configuration.dependencyLineColor)
+                    )
+                }
+
+                // Draw the end circle (at target task)
+                if let endCircle = calculator.endCirclePath(for: dependency) {
+                    context.fill(
+                        endCircle,
                         with: .color(configuration.dependencyLineColor)
                     )
                 }

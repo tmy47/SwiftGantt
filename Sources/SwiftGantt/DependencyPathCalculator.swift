@@ -124,7 +124,7 @@ struct DependencyPathCalculator<Task: GanttTask> where Task.ID: Hashable {
         }
 
         var path = Path()
-        let margin: CGFloat = 12
+        let margin: CGFloat = 32
 
         // Same row - simple horizontal line
         if fromIndex == toIndex {
@@ -224,8 +224,40 @@ struct DependencyPathCalculator<Task: GanttTask> where Task.ID: Hashable {
         return path
     }
 
-    /// Generate arrowhead path at the end point
-    func arrowPath(for dependency: GanttDependency<Task.ID>) -> Path? {
+    /// Circle radius for dependency line endpoints
+    private var circleRadius: CGFloat { 5 }
+
+    /// Generate circle path at the start point (source task)
+    func startCirclePath(for dependency: GanttDependency<Task.ID>) -> Path? {
+        guard let fromIndex = rowIndex(for: dependency.fromId),
+              fromIndex < tasks.count else {
+            return nil
+        }
+
+        let fromTask = tasks[fromIndex]
+        let fromY = rowCenterY(for: fromIndex)
+
+        let startX: CGFloat
+        switch dependency.type {
+        case .endToStart, .endToEnd:
+            startX = taskEndX(for: fromTask)
+        case .startToStart, .startToEnd:
+            startX = taskStartX(for: fromTask)
+        }
+
+        var circle = Path()
+        circle.addEllipse(in: CGRect(
+            x: startX - circleRadius,
+            y: fromY - circleRadius,
+            width: circleRadius * 2,
+            height: circleRadius * 2
+        ))
+
+        return circle
+    }
+
+    /// Generate circle path at the end point (target task)
+    func endCirclePath(for dependency: GanttDependency<Task.ID>) -> Path? {
         guard let toIndex = rowIndex(for: dependency.toId),
               toIndex < tasks.count else {
             return nil
@@ -242,14 +274,14 @@ struct DependencyPathCalculator<Task: GanttTask> where Task.ID: Hashable {
             endX = taskEndX(for: toTask)
         }
 
-        let arrowSize: CGFloat = 6
+        var circle = Path()
+        circle.addEllipse(in: CGRect(
+            x: endX - circleRadius,
+            y: toY - circleRadius,
+            width: circleRadius * 2,
+            height: circleRadius * 2
+        ))
 
-        var arrow = Path()
-        arrow.move(to: CGPoint(x: endX, y: toY))
-        arrow.addLine(to: CGPoint(x: endX - arrowSize, y: toY - arrowSize / 2))
-        arrow.addLine(to: CGPoint(x: endX - arrowSize, y: toY + arrowSize / 2))
-        arrow.closeSubpath()
-
-        return arrow
+        return circle
     }
 }
