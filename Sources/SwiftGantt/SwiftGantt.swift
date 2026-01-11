@@ -401,16 +401,15 @@ public struct GanttChart<Item: GanttTask>: View where Item.ID: Hashable {
                                 }
                             }
 
-                            // Dependency lines
-                            if configuration.showDependencies && !dependencies.isEmpty {
-                                DependencyLayer(
-                                    dependencies: dependencies,
-                                    tasks: tasks,
-                                    dateRange: extendedDateRange,
-                                    configuration: configuration
-                                )
-                                .allowsHitTesting(false)
-                            }
+                            // Dependency lines (always present to avoid layout shifts)
+                            DependencyLayer(
+                                dependencies: configuration.showDependencies ? dependencies : [],
+                                tasks: tasks,
+                                dateRange: extendedDateRange,
+                                configuration: configuration
+                            )
+                            .frame(width: timelineWidth, height: displayContentHeight)
+                            .allowsHitTesting(false)
 
                         }
                         .frame(width: timelineWidth, height: displayContentHeight)
