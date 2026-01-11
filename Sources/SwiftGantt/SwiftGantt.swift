@@ -412,9 +412,6 @@ public struct GanttChart<Item: GanttTask>: View where Item.ID: Hashable {
                                 .allowsHitTesting(false)
                             }
 
-                            // Today marker
-                            TodayMarkerLine(dateRange: extendedDateRange, configuration: configuration)
-                                .frame(height: displayContentHeight)
                         }
                         .frame(width: timelineWidth, height: displayContentHeight)
                         .background(

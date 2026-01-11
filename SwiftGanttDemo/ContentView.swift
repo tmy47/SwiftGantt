@@ -101,10 +101,17 @@ struct ContentView: View {
                 }
             }
             .sheet(item: $selectedTask) { task in
-                TaskDetailView(task: task)
+                TaskDetailView(task: task) { updatedTask in
+                    if let index = tasks.firstIndex(where: { $0.id == updatedTask.id }) {
+                        tasks[index] = updatedTask
+                    }
+                }
             }
             .sheet(item: $selectedCDTask) { task in
-                CDTaskDetailView(task: task)
+                CDTaskDetailView(task: task) {
+                    // Force full chart refresh
+                    scrollToTodayTrigger = UUID()
+                }
             }
         }
     }
@@ -186,31 +193,33 @@ extension UIColor {
 
 struct TaskDetailView: View {
     let task: DemoTask
+    let onSave: (DemoTask) -> Void
     @Environment(\.dismiss) private var dismiss
 
-    private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
-    }()
+    @State private var editedTitle: String = ""
+    @State private var editedStartDate: Date = Date()
+    @State private var editedEndDate: Date = Date()
+    @State private var editedProgress: Double = 0
+    @State private var hasChanges: Bool = false
 
     private var duration: Int {
         let calendar = Calendar.current
-        let start = calendar.startOfDay(for: task.startDate)
-        let end = calendar.startOfDay(for: task.endDate)
+        let start = calendar.startOfDay(for: editedStartDate)
+        let end = calendar.startOfDay(for: editedEndDate)
         return (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
     }
 
     var body: some View {
         NavigationStack {
-            List {
+            Form {
                 Section {
                     HStack {
                         Circle()
                             .fill(task.color)
                             .frame(width: 12, height: 12)
-                        Text(task.title)
+                        TextField("Title", text: $editedTitle)
                             .font(.headline)
+                            .onChange(of: editedTitle) { _ in hasChanges = true }
                     }
 
                     if let subtitle = task.subtitle {
@@ -221,65 +230,92 @@ struct TaskDetailView: View {
                 }
 
                 Section("Schedule") {
-                    LabeledContent("Start Date", value: dateFormatter.string(from: task.startDate))
-                    LabeledContent("End Date", value: dateFormatter.string(from: task.endDate))
+                    DatePicker("Start Date", selection: $editedStartDate, displayedComponents: .date)
+                        .onChange(of: editedStartDate) { _ in hasChanges = true }
+                    DatePicker("End Date", selection: $editedEndDate, displayedComponents: .date)
+                        .onChange(of: editedEndDate) { _ in hasChanges = true }
                     LabeledContent("Duration", value: "\(duration) days")
                 }
 
                 Section("Progress") {
                     HStack {
-                        ProgressView(value: task.progress)
+                        Slider(value: $editedProgress, in: 0...1, step: 0.05)
                             .tint(task.color)
-                        Text("\(Int(task.progress * 100))%")
+                            .onChange(of: editedProgress) { _ in hasChanges = true }
+                        Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .frame(width: 40)
                     }
                 }
             }
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveChanges()
+                        dismiss()
+                    }
+                    .disabled(!hasChanges)
+                }
             }
         }
-        .presentationDetents([.height(400), .large])
-        .iPadSheet()
+        .onAppear {
+            editedTitle = task.title
+            editedStartDate = task.startDate
+            editedEndDate = task.endDate
+            editedProgress = task.progress
+        }
+        .fittedSheet()
+    }
+
+    private func saveChanges() {
+        var updatedTask = task
+        updatedTask.title = editedTitle
+        updatedTask.startDate = editedStartDate
+        updatedTask.endDate = editedEndDate
+        updatedTask.progress = editedProgress
+        onSave(updatedTask)
     }
 }
 
 // MARK: - Core Data Task Detail View
 
 struct CDTaskDetailView: View {
-    let task: CDTask
+    @ObservedObject var task: CDTask
+    let onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
 
-    private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
-    }()
+    @State private var editedTitle: String = ""
+    @State private var editedStartDate: Date = Date()
+    @State private var editedEndDate: Date = Date()
+    @State private var editedProgress: Double = 0
+    @State private var hasChanges: Bool = false
 
     private var duration: Int {
         let calendar = Calendar.current
-        let start = calendar.startOfDay(for: task.startDate)
-        let end = calendar.startOfDay(for: task.endDate)
+        let start = calendar.startOfDay(for: editedStartDate)
+        let end = calendar.startOfDay(for: editedEndDate)
         return (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
     }
 
     var body: some View {
         NavigationStack {
-            List {
+            Form {
                 Section {
                     HStack {
                         Circle()
                             .fill(task.color)
                             .frame(width: 12, height: 12)
-                        Text(task.title)
+                        TextField("Title", text: $editedTitle)
                             .font(.headline)
+                            .onChange(of: editedTitle) { _ in hasChanges = true }
                     }
 
                     if let subtitle = task.subtitle {
@@ -290,51 +326,74 @@ struct CDTaskDetailView: View {
                 }
 
                 Section("Schedule") {
-                    LabeledContent("Start Date", value: dateFormatter.string(from: task.startDate))
-                    LabeledContent("End Date", value: dateFormatter.string(from: task.endDate))
+                    DatePicker("Start Date", selection: $editedStartDate, displayedComponents: .date)
+                        .onChange(of: editedStartDate) { _ in hasChanges = true }
+                    DatePicker("End Date", selection: $editedEndDate, displayedComponents: .date)
+                        .onChange(of: editedEndDate) { _ in hasChanges = true }
                     LabeledContent("Duration", value: "\(duration) days")
                 }
 
                 Section("Progress") {
                     HStack {
-                        ProgressView(value: task.progress)
+                        Slider(value: $editedProgress, in: 0...1, step: 0.05)
                             .tint(task.color)
-                        Text("\(Int(task.progress * 100))%")
+                            .onChange(of: editedProgress) { _ in hasChanges = true }
+                        Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .frame(width: 40)
                     }
-                }
-
-                Section("Core Data Info") {
-                    LabeledContent("ID (Int64)", value: "\(task.id)")
                 }
             }
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveChanges()
+                        dismiss()
+                    }
+                    .disabled(!hasChanges)
+                }
             }
         }
-        .presentationDetents([.height(450), .large])
-        .iPadSheet()
+        .onAppear {
+            editedTitle = task.title
+            editedStartDate = task.startDate
+            editedEndDate = task.endDate
+            editedProgress = task.progress
+        }
+        .fittedSheet()
+    }
+
+    private func saveChanges() {
+        task.title_ = editedTitle
+        task.startDate_ = editedStartDate
+        task.endDate_ = editedEndDate
+        task.progress = editedProgress
+        try? task.managedObjectContext?.save()
+        onSave()
     }
 }
 
-// MARK: - iPad Sheet Modifier
+// MARK: - Fitted Sheet Modifier
 
 extension View {
     @ViewBuilder
-    func iPadSheet() -> some View {
-        if UIDevice.current.userInterfaceIdiom == .pad {
+    func fittedSheet() -> some View {
+        if #available(iOS 18.0, *) {
             self
-                .presentationDetents([.height(500)])
-                .frame(minWidth: 400, idealWidth: 500, maxWidth: 600)
+                .presentationSizing(.form)
+                .presentationDragIndicator(.visible)
         } else {
             self
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
