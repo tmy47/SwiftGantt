@@ -2,6 +2,8 @@
 
 A high-performance Gantt chart component for SwiftUI with support for task dependencies, progress tracking, and Core Data integration.
 
+![SwiftGantt Demo](Screenshots/demo.png)
+
 ## Features
 
 - Virtualized row rendering for smooth scrolling with thousands of tasks
