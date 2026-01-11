@@ -160,7 +160,7 @@ private struct DayColumnHeader: View {
 
             if isToday && configuration.showTodayMarker {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(configuration.todayMarkerColor)
+                    .fill(Color.black)
                     .padding(2)
             }
 

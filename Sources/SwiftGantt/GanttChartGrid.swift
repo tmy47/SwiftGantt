@@ -82,7 +82,7 @@ class GanttGridView: UIView {
 
         // Get CGColors (these are thread-safe once created)
         let weekendCGColor = weekendColor.cgColor
-        let todayCGColor = todayMarkerColor.withAlphaComponent(0.1).cgColor
+        let todayCGColor = UIColor.black.withAlphaComponent(0.1).cgColor
         let gridCGColor = gridColor.cgColor
 
         // Draw weekend shading - only visible columns in this tile
