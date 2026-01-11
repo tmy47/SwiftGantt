@@ -75,10 +75,19 @@ struct ContentView: View {
                             Image(systemName: showDependencies ? "arrow.triangle.branch" : "minus")
                         }
 
-                        Button {
-                            sortByColor()
+                        Menu {
+                            Button {
+                                sortByDate()
+                            } label: {
+                                Label("Sort by Date", systemImage: "calendar")
+                            }
+                            Button {
+                                sortByColor()
+                            } label: {
+                                Label("Sort by Color", systemImage: "paintpalette")
+                            }
                         } label: {
-                            Image(systemName: "paintpalette")
+                            Image(systemName: "arrow.up.arrow.down")
                         }
 
                         Menu {
@@ -172,6 +181,14 @@ struct ContentView: View {
                 let hue2 = UIColor(task2.color).hue
                 return hue1 < hue2
             }
+        }
+    }
+
+    private func sortByDate() {
+        if isUsingCoreData {
+            coreDataTasks.sort { $0.startDate < $1.startDate }
+        } else {
+            tasks.sort { $0.startDate < $1.startDate }
         }
     }
 }
