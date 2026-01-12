@@ -41,7 +41,7 @@ extension CDTask: GanttTask {
         endDate_ ?? Date()
     }
 
-    public var color: Color {
+    public var taskColor: Color {
         guard let hex = colorHex else { return .blue }
         return Color(hex: hex)
     }

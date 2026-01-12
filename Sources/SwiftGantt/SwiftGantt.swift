@@ -491,7 +491,7 @@ struct TaskLabelView<Item: GanttTask>: View {
         HStack(spacing: 12) {
             CircularProgressView(
                 progress: task.progress,
-                color: task.color,
+                color: task.taskColor,
                 size: 36
             )
 
@@ -515,7 +515,7 @@ struct TaskLabelView<Item: GanttTask>: View {
         }
         .padding(.horizontal, 12)
         .frame(width: configuration.labelColumnWidth, height: configuration.rowHeight)
-        .background(isSelected ? task.color.opacity(0.15) : Color.clear)
+        .background(isSelected ? task.taskColor.opacity(0.15) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture {
             onTap?()
@@ -580,7 +580,7 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
             } label: {
                 TaskBar(
                     progress: task.progress,
-                    color: task.color,
+                    color: task.taskColor,
                     configuration: configuration,
                     barHeight: barHeight
                 )
@@ -590,7 +590,7 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
             .offset(x: taskStartOffset)
         }
         .frame(height: configuration.rowHeight)
-        .background(isSelected ? task.color.opacity(0.15) : Color.clear)
+        .background(isSelected ? task.taskColor.opacity(0.15) : Color.clear)
     }
 }
 

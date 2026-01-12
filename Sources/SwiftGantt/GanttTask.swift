@@ -19,12 +19,12 @@ public protocol GanttTask: Identifiable {
     var progress: Double { get }
 
     /// Color for the task bar
-    var color: Color { get }
+    var taskColor: Color { get }
 }
 
 /// Default implementations
 public extension GanttTask {
     var progress: Double { 0.0 }
     var subtitle: String? { nil }
-    var color: Color { .blue }
+    var taskColor: Color { .blue }
 }

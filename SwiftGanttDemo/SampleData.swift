@@ -9,7 +9,7 @@ struct DemoTask: GanttTask {
     var taskStartDate: Date
     var taskEndDate: Date
     var progress: Double
-    var color: Color
+    var taskColor: Color
 
     init(
         id: UUID = UUID(),
@@ -18,7 +18,7 @@ struct DemoTask: GanttTask {
         taskStartDate: Date,
         taskEndDate: Date,
         progress: Double = 0.0,
-        color: Color = .blue
+        taskColor: Color = .blue
     ) {
         self.id = id
         self.title = title
@@ -26,7 +26,7 @@ struct DemoTask: GanttTask {
         self.taskStartDate = taskStartDate
         self.taskEndDate = taskEndDate
         self.progress = progress
-        self.color = color
+        self.taskColor = taskColor
     }
 }
 
@@ -111,7 +111,7 @@ enum SampleData {
                 taskStartDate: start1,
                 taskEndDate: end1,
                 progress: 0.75,
-                color: .blue
+                taskColor: .blue
             ),
             DemoTask(
                 id: minimalTaskIdB,
@@ -120,7 +120,7 @@ enum SampleData {
                 taskStartDate: start2,
                 taskEndDate: end2,
                 progress: 0.25,
-                color: .blue
+                taskColor: .blue
             )
         ]
     }
@@ -190,7 +190,7 @@ enum SampleData {
         startOffset: Int,
         duration: Int,
         progress: Double,
-        color: Color,
+        taskColor: Color,
         location: String
     ) -> DemoTask {
         let start = calendar.date(byAdding: .day, value: startOffset, to: today)!
@@ -202,68 +202,68 @@ enum SampleData {
             taskStartDate: start,
             taskEndDate: end,
             progress: progress,
-            color: color
+            taskColor: taskColor
         )
     }
 
     static var tasks: [DemoTask] {
         [
             // Phase 1: Site Preparation (indices 0-2)
-            makeTask(id: demoTaskIds[TaskIndex.siteSurvey.rawValue], title: "Site Survey and Layout", startOffset: -10, duration: 5, progress: 1.0, color: .green, location: "Site • Ground Level"),
-            makeTask(id: demoTaskIds[TaskIndex.tempEnvironmental.rawValue], title: "Temporary Environmental Controls", startOffset: -6, duration: 11, progress: 0.85, color: .green, location: "Site • All Areas"),
-            makeTask(id: demoTaskIds[TaskIndex.demolition.rawValue], title: "Demolition and Clearing", startOffset: -8, duration: 6, progress: 1.0, color: .green, location: "Site • North Section"),
+            makeTask(id: demoTaskIds[TaskIndex.siteSurvey.rawValue], title: "Site Survey and Layout", startOffset: -10, duration: 5, progress: 1.0, taskColor: .green, location: "Site • Ground Level"),
+            makeTask(id: demoTaskIds[TaskIndex.tempEnvironmental.rawValue], title: "Temporary Environmental Controls", startOffset: -6, duration: 11, progress: 0.85, taskColor: .green, location: "Site • All Areas"),
+            makeTask(id: demoTaskIds[TaskIndex.demolition.rawValue], title: "Demolition and Clearing", startOffset: -8, duration: 6, progress: 1.0, taskColor: .green, location: "Site • North Section"),
 
             // Phase 2: Foundation (indices 3-6)
-            makeTask(id: demoTaskIds[TaskIndex.excavation.rawValue], title: "Excavation and Grading", startOffset: -4, duration: 8, progress: 0.65, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • All"),
-            makeTask(id: demoTaskIds[TaskIndex.foundationFormwork.rawValue], title: "Foundation Formwork", startOffset: 2, duration: 10, progress: 0.34, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • Core"),
-            makeTask(id: demoTaskIds[TaskIndex.rebarInstallation.rawValue], title: "Rebar Installation - Foundation", startOffset: 5, duration: 7, progress: 0.20, color: .orange, location: "Foundation • Grid A-F"),
-            makeTask(id: demoTaskIds[TaskIndex.concretePour.rawValue], title: "Concrete Pour - Foundation", startOffset: 10, duration: 4, progress: 0.0, color: .gray, location: "Foundation • All"),
+            makeTask(id: demoTaskIds[TaskIndex.excavation.rawValue], title: "Excavation and Grading", startOffset: -4, duration: 8, progress: 0.65, taskColor: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • All"),
+            makeTask(id: demoTaskIds[TaskIndex.foundationFormwork.rawValue], title: "Foundation Formwork", startOffset: 2, duration: 10, progress: 0.34, taskColor: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Foundation • Core"),
+            makeTask(id: demoTaskIds[TaskIndex.rebarInstallation.rawValue], title: "Rebar Installation - Foundation", startOffset: 5, duration: 7, progress: 0.20, taskColor: .orange, location: "Foundation • Grid A-F"),
+            makeTask(id: demoTaskIds[TaskIndex.concretePour.rawValue], title: "Concrete Pour - Foundation", startOffset: 10, duration: 4, progress: 0.0, taskColor: .gray, location: "Foundation • All"),
 
             // Phase 3: Structure (indices 7-10)
-            makeTask(id: demoTaskIds[TaskIndex.steelErection.rawValue], title: "Steel Erection - Phase 1", startOffset: 14, duration: 15, progress: 0.0, color: .gray, location: "Structure • L1-5"),
-            makeTask(id: demoTaskIds[TaskIndex.concreteStructure.rawValue], title: "Concrete/Steel Structure Vertical", startOffset: 8, duration: 14, progress: 0.34, color: .orange, location: "Structure • L20-24"),
-            makeTask(id: demoTaskIds[TaskIndex.metalDeck.rawValue], title: "Metal Deck Installation", startOffset: 18, duration: 12, progress: 0.0, color: .gray, location: "Structure • L1-10"),
-            makeTask(id: demoTaskIds[TaskIndex.concreteSlab.rawValue], title: "Concrete Slab on Deck", startOffset: 22, duration: 10, progress: 0.0, color: .gray, location: "Structure • L1-5"),
+            makeTask(id: demoTaskIds[TaskIndex.steelErection.rawValue], title: "Steel Erection - Phase 1", startOffset: 14, duration: 15, progress: 0.0, taskColor: .gray, location: "Structure • L1-5"),
+            makeTask(id: demoTaskIds[TaskIndex.concreteStructure.rawValue], title: "Concrete/Steel Structure Vertical", startOffset: 8, duration: 14, progress: 0.34, taskColor: .orange, location: "Structure • L20-24"),
+            makeTask(id: demoTaskIds[TaskIndex.metalDeck.rawValue], title: "Metal Deck Installation", startOffset: 18, duration: 12, progress: 0.0, taskColor: .gray, location: "Structure • L1-10"),
+            makeTask(id: demoTaskIds[TaskIndex.concreteSlab.rawValue], title: "Concrete Slab on Deck", startOffset: 22, duration: 10, progress: 0.0, taskColor: .gray, location: "Structure • L1-5"),
 
             // Phase 4: Exterior (indices 11-14)
-            makeTask(id: demoTaskIds[TaskIndex.curtainWall.rawValue], title: "Exterior Curtain Wall/Window Wall", startOffset: 0, duration: 18, progress: 0.34, color: .orange, location: "Exterior • L10-14"),
-            makeTask(id: demoTaskIds[TaskIndex.roofing.rawValue], title: "Roofing and Waterproofing", startOffset: 28, duration: 14, progress: 0.0, color: .gray, location: "Exterior • Roof"),
-            makeTask(id: demoTaskIds[TaskIndex.claddingNorth.rawValue], title: "Exterior Cladding - North", startOffset: 25, duration: 20, progress: 0.0, color: .gray, location: "Exterior • North Face"),
-            makeTask(id: demoTaskIds[TaskIndex.claddingSouth.rawValue], title: "Exterior Cladding - South", startOffset: 30, duration: 20, progress: 0.0, color: .gray, location: "Exterior • South Face"),
+            makeTask(id: demoTaskIds[TaskIndex.curtainWall.rawValue], title: "Exterior Curtain Wall/Window Wall", startOffset: 0, duration: 18, progress: 0.34, taskColor: .orange, location: "Exterior • L10-14"),
+            makeTask(id: demoTaskIds[TaskIndex.roofing.rawValue], title: "Roofing and Waterproofing", startOffset: 28, duration: 14, progress: 0.0, taskColor: .gray, location: "Exterior • Roof"),
+            makeTask(id: demoTaskIds[TaskIndex.claddingNorth.rawValue], title: "Exterior Cladding - North", startOffset: 25, duration: 20, progress: 0.0, taskColor: .gray, location: "Exterior • North Face"),
+            makeTask(id: demoTaskIds[TaskIndex.claddingSouth.rawValue], title: "Exterior Cladding - South", startOffset: 30, duration: 20, progress: 0.0, taskColor: .gray, location: "Exterior • South Face"),
 
             // Phase 5: MEP Rough-In (indices 15-19)
-            makeTask(id: demoTaskIds[TaskIndex.mepRoughIn.rawValue], title: "MEP Rough-In - Primary Horizontal", startOffset: -4, duration: 12, progress: 0.34, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L8"),
-            makeTask(id: demoTaskIds[TaskIndex.electricalRoughIn.rawValue], title: "Electrical Rough-In", startOffset: 12, duration: 18, progress: 0.0, color: .purple, location: "Interior • All Floors"),
-            makeTask(id: demoTaskIds[TaskIndex.plumbingRoughIn.rawValue], title: "Plumbing Rough-In", startOffset: 14, duration: 16, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • L1-10"),
-            makeTask(id: demoTaskIds[TaskIndex.hvacDuctwork.rawValue], title: "HVAC Ductwork Installation", startOffset: 16, duration: 20, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
-            makeTask(id: demoTaskIds[TaskIndex.fireSprinkler.rawValue], title: "Fire Sprinkler Installation", startOffset: 20, duration: 14, progress: 0.0, color: Color(red: 0.9, green: 0.3, blue: 0.3), location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.mepRoughIn.rawValue], title: "MEP Rough-In - Primary Horizontal", startOffset: -4, duration: 12, progress: 0.34, taskColor: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L8"),
+            makeTask(id: demoTaskIds[TaskIndex.electricalRoughIn.rawValue], title: "Electrical Rough-In", startOffset: 12, duration: 18, progress: 0.0, taskColor: .purple, location: "Interior • All Floors"),
+            makeTask(id: demoTaskIds[TaskIndex.plumbingRoughIn.rawValue], title: "Plumbing Rough-In", startOffset: 14, duration: 16, progress: 0.0, taskColor: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • L1-10"),
+            makeTask(id: demoTaskIds[TaskIndex.hvacDuctwork.rawValue], title: "HVAC Ductwork Installation", startOffset: 16, duration: 20, progress: 0.0, taskColor: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.fireSprinkler.rawValue], title: "Fire Sprinkler Installation", startOffset: 20, duration: 14, progress: 0.0, taskColor: Color(red: 0.9, green: 0.3, blue: 0.3), location: "Interior • All"),
 
             // Phase 6: Interior Framing (indices 20-22)
-            makeTask(id: demoTaskIds[TaskIndex.metalStudFraming.rawValue], title: "Metal Stud Framing and Fire-Rated", startOffset: -2, duration: 14, progress: 0.45, color: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L5-7"),
-            makeTask(id: demoTaskIds[TaskIndex.drywall.rawValue], title: "Drywall Installation", startOffset: 24, duration: 18, progress: 0.0, color: .gray, location: "Interior • L1-10"),
-            makeTask(id: demoTaskIds[TaskIndex.ceilingGrid.rawValue], title: "Ceiling Grid Installation", startOffset: 32, duration: 12, progress: 0.0, color: .gray, location: "Interior • L1-5"),
+            makeTask(id: demoTaskIds[TaskIndex.metalStudFraming.rawValue], title: "Metal Stud Framing and Fire-Rated", startOffset: -2, duration: 14, progress: 0.45, taskColor: Color(red: 0.2, green: 0.7, blue: 0.3), location: "Interior • L5-7"),
+            makeTask(id: demoTaskIds[TaskIndex.drywall.rawValue], title: "Drywall Installation", startOffset: 24, duration: 18, progress: 0.0, taskColor: .gray, location: "Interior • L1-10"),
+            makeTask(id: demoTaskIds[TaskIndex.ceilingGrid.rawValue], title: "Ceiling Grid Installation", startOffset: 32, duration: 12, progress: 0.0, taskColor: .gray, location: "Interior • L1-5"),
 
             // Phase 7: Finishes (indices 23-25)
-            makeTask(id: demoTaskIds[TaskIndex.painting.rawValue], title: "Interior Painting", startOffset: 38, duration: 16, progress: 0.0, color: .gray, location: "Interior • All"),
-            makeTask(id: demoTaskIds[TaskIndex.flooring.rawValue], title: "Flooring Installation", startOffset: 42, duration: 14, progress: 0.0, color: .gray, location: "Interior • L1-10"),
-            makeTask(id: demoTaskIds[TaskIndex.millwork.rawValue], title: "Millwork and Casework", startOffset: 45, duration: 12, progress: 0.0, color: .gray, location: "Interior • Common Areas"),
+            makeTask(id: demoTaskIds[TaskIndex.painting.rawValue], title: "Interior Painting", startOffset: 38, duration: 16, progress: 0.0, taskColor: .gray, location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.flooring.rawValue], title: "Flooring Installation", startOffset: 42, duration: 14, progress: 0.0, taskColor: .gray, location: "Interior • L1-10"),
+            makeTask(id: demoTaskIds[TaskIndex.millwork.rawValue], title: "Millwork and Casework", startOffset: 45, duration: 12, progress: 0.0, taskColor: .gray, location: "Interior • Common Areas"),
 
             // Phase 8: MEP Finishes (indices 26-29)
-            makeTask(id: demoTaskIds[TaskIndex.pipeInsulation.rawValue], title: "Vertical Pipe Insulation and Duct", startOffset: 10, duration: 10, progress: 0.34, color: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Interior • L5-7"),
-            makeTask(id: demoTaskIds[TaskIndex.electricalTrim.rawValue], title: "Electrical Trim", startOffset: 48, duration: 10, progress: 0.0, color: .purple, location: "Interior • All"),
-            makeTask(id: demoTaskIds[TaskIndex.plumbingFixtures.rawValue], title: "Plumbing Fixtures", startOffset: 50, duration: 8, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
-            makeTask(id: demoTaskIds[TaskIndex.hvacCommissioning.rawValue], title: "HVAC Commissioning", startOffset: 52, duration: 10, progress: 0.0, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.pipeInsulation.rawValue], title: "Vertical Pipe Insulation and Duct", startOffset: 10, duration: 10, progress: 0.34, taskColor: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Interior • L5-7"),
+            makeTask(id: demoTaskIds[TaskIndex.electricalTrim.rawValue], title: "Electrical Trim", startOffset: 48, duration: 10, progress: 0.0, taskColor: .purple, location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.plumbingFixtures.rawValue], title: "Plumbing Fixtures", startOffset: 50, duration: 8, progress: 0.0, taskColor: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
+            makeTask(id: demoTaskIds[TaskIndex.hvacCommissioning.rawValue], title: "HVAC Commissioning", startOffset: 52, duration: 10, progress: 0.0, taskColor: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Interior • All"),
 
             // Phase 9: Site Work (indices 30-32)
-            makeTask(id: demoTaskIds[TaskIndex.craneLift.rawValue], title: "Site Logistics - Crane Jump/Climb", startOffset: 5, duration: 7, progress: 0.34, color: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Core • Crane Mast"),
-            makeTask(id: demoTaskIds[TaskIndex.landscaping.rawValue], title: "Landscaping", startOffset: 55, duration: 14, progress: 0.0, color: .green, location: "Site • Exterior"),
-            makeTask(id: demoTaskIds[TaskIndex.parkingPaving.rawValue], title: "Parking Lot Paving", startOffset: 50, duration: 10, progress: 0.0, color: .gray, location: "Site • Parking"),
+            makeTask(id: demoTaskIds[TaskIndex.craneLift.rawValue], title: "Site Logistics - Crane Jump/Climb", startOffset: 5, duration: 7, progress: 0.34, taskColor: Color(red: 0.3, green: 0.6, blue: 0.9), location: "Core • Crane Mast"),
+            makeTask(id: demoTaskIds[TaskIndex.landscaping.rawValue], title: "Landscaping", startOffset: 55, duration: 14, progress: 0.0, taskColor: .green, location: "Site • Exterior"),
+            makeTask(id: demoTaskIds[TaskIndex.parkingPaving.rawValue], title: "Parking Lot Paving", startOffset: 50, duration: 10, progress: 0.0, taskColor: .gray, location: "Site • Parking"),
 
             // Phase 10: Closeout (indices 33-34)
-            makeTask(id: demoTaskIds[TaskIndex.firestopping.rawValue], title: "Firestopping and Penetration Sealant", startOffset: 2, duration: 6, progress: 0.50, color: .purple, location: "Interior • L3-4"),
-            makeTask(id: demoTaskIds[TaskIndex.permitting.rawValue], title: "Permitting and Code Review", startOffset: 18, duration: 10, progress: 0.34, color: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Offsite"),
-            makeTask(title: "Final Inspections", startOffset: 58, duration: 8, progress: 0.0, color: .gray, location: "All Areas"),
-            makeTask(title: "Punch List and Closeout", startOffset: 62, duration: 10, progress: 0.0, color: .gray, location: "All Areas"),
+            makeTask(id: demoTaskIds[TaskIndex.firestopping.rawValue], title: "Firestopping and Penetration Sealant", startOffset: 2, duration: 6, progress: 0.50, taskColor: .purple, location: "Interior • L3-4"),
+            makeTask(id: demoTaskIds[TaskIndex.permitting.rawValue], title: "Permitting and Code Review", startOffset: 18, duration: 10, progress: 0.34, taskColor: Color(red: 0.9, green: 0.4, blue: 0.6), location: "Offsite"),
+            makeTask(title: "Final Inspections", startOffset: 58, duration: 8, progress: 0.0, taskColor: .gray, location: "All Areas"),
+            makeTask(title: "Punch List and Closeout", startOffset: 62, duration: 10, progress: 0.0, taskColor: .gray, location: "All Areas"),
         ]
     }
 
@@ -334,7 +334,7 @@ enum SampleData {
                 taskStartDate: start,
                 taskEndDate: end,
                 progress: min(1.0, max(0.0, progress)),
-                color: color
+                taskColor: color
             ))
         }
 

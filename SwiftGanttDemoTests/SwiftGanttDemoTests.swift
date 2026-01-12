@@ -10,7 +10,7 @@ struct SampleTask: GanttTask {
     let taskEndDate: Date
     var progress: Double = 0.0
     var subtitle: String? = nil
-    var color: Color = .blue
+    var taskColor: Color = .blue
 }
 
 @Test func taskConformsToProtocol() async throws {
@@ -23,5 +23,5 @@ struct SampleTask: GanttTask {
     #expect(task.title == "Test Task")
     #expect(task.progress == 0.0)
     #expect(task.subtitle == nil)
-    #expect(task.color == .blue)
+    #expect(task.taskColor == .blue)
 }

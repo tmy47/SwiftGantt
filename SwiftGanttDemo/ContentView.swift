@@ -171,14 +171,14 @@ struct ContentView: View {
     private func sortByColor() {
         if isUsingCoreData {
             coreDataTasks.sort { task1, task2 in
-                let hue1 = UIColor(task1.color).hue
-                let hue2 = UIColor(task2.color).hue
+                let hue1 = UIColor(task1.taskColor).hue
+                let hue2 = UIColor(task2.taskColor).hue
                 return hue1 < hue2
             }
         } else {
             tasks.sort { task1, task2 in
-                let hue1 = UIColor(task1.color).hue
-                let hue2 = UIColor(task2.color).hue
+                let hue1 = UIColor(task1.taskColor).hue
+                let hue2 = UIColor(task2.taskColor).hue
                 return hue1 < hue2
             }
         }
@@ -231,7 +231,7 @@ struct TaskDetailView: View {
                 Section {
                     HStack {
                         Circle()
-                            .fill(task.color)
+                            .fill(task.taskColor)
                             .frame(width: 12, height: 12)
                         TextField("Title", text: $editedTitle)
                             .font(.headline)
@@ -261,7 +261,7 @@ struct TaskDetailView: View {
                 Section("Progress") {
                     HStack {
                         Slider(value: $editedProgress, in: 0...1, step: 0.05)
-                            .tint(task.color)
+                            .tint(task.taskColor)
                             .onChange(of: editedProgress) { _ in saveChanges() }
                         Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
@@ -324,7 +324,7 @@ struct CDTaskDetailView: View {
                 Section {
                     HStack {
                         Circle()
-                            .fill(task.color)
+                            .fill(task.taskColor)
                             .frame(width: 12, height: 12)
                         TextField("Title", text: $editedTitle)
                             .font(.headline)
@@ -354,7 +354,7 @@ struct CDTaskDetailView: View {
                 Section("Progress") {
                     HStack {
                         Slider(value: $editedProgress, in: 0...1, step: 0.05)
-                            .tint(task.color)
+                            .tint(task.taskColor)
                             .onChange(of: editedProgress) { _ in saveChanges() }
                         Text("\(Int(editedProgress * 100))%")
                             .font(.caption)
