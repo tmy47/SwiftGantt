@@ -186,9 +186,9 @@ struct ContentView: View {
 
     private func sortByDate() {
         if isUsingCoreData {
-            coreDataTasks.sort { $0.startDate < $1.startDate }
+            coreDataTasks.sort { $0.taskStartDate < $1.taskStartDate }
         } else {
-            tasks.sort { $0.startDate < $1.startDate }
+            tasks.sort { $0.taskStartDate < $1.taskStartDate }
         }
     }
 }
@@ -282,8 +282,8 @@ struct TaskDetailView: View {
         }
         .onAppear {
             editedTitle = task.title
-            editedStartDate = task.startDate
-            editedEndDate = task.endDate
+            editedStartDate = task.taskStartDate
+            editedEndDate = task.taskEndDate
             editedProgress = task.progress
         }
         .fittedSheet()
@@ -292,8 +292,8 @@ struct TaskDetailView: View {
     private func saveChanges() {
         var updatedTask = task
         updatedTask.title = editedTitle
-        updatedTask.startDate = editedStartDate
-        updatedTask.endDate = editedEndDate
+        updatedTask.taskStartDate = editedStartDate
+        updatedTask.taskEndDate = editedEndDate
         updatedTask.progress = editedProgress
         onSave(updatedTask)
     }
@@ -375,8 +375,8 @@ struct CDTaskDetailView: View {
         }
         .onAppear {
             editedTitle = task.title
-            editedStartDate = task.startDate
-            editedEndDate = task.endDate
+            editedStartDate = task.taskStartDate
+            editedEndDate = task.taskEndDate
             editedProgress = task.progress
         }
         .fittedSheet()

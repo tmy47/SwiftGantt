@@ -30,14 +30,14 @@ struct DependencyPathCalculator<Task: GanttTask> where Task.ID: Hashable {
 
     func taskStartX(for task: Task) -> CGFloat {
         let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
-        let taskStart = calendar.startOfDay(for: task.startDate)
+        let taskStart = calendar.startOfDay(for: task.taskStartDate)
         let days = calendar.dateComponents([.day], from: rangeStart, to: taskStart).day ?? 0
         return CGFloat(days) * configuration.dayColumnWidth
     }
 
     func taskEndX(for task: Task) -> CGFloat {
         let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
-        let taskEnd = calendar.startOfDay(for: task.endDate)
+        let taskEnd = calendar.startOfDay(for: task.taskEndDate)
         let days = calendar.dateComponents([.day], from: rangeStart, to: taskEnd).day ?? 0
         return CGFloat(days + 1) * configuration.dayColumnWidth
     }

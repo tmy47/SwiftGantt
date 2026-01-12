@@ -317,7 +317,7 @@ public struct GanttChart<Item: GanttTask>: View where Item.ID: Hashable {
     /// Calculate the X offset for a task's start date
     private func taskStartOffset(for task: Item) -> CGFloat {
         let rangeStart = calendar.startOfDay(for: extendedDateRange.lowerBound)
-        let taskStart = calendar.startOfDay(for: task.startDate)
+        let taskStart = calendar.startOfDay(for: task.taskStartDate)
         let days = calendar.dateComponents([.day], from: rangeStart, to: taskStart).day ?? 0
         return CGFloat(days) * configuration.dayColumnWidth
     }
@@ -554,14 +554,14 @@ struct GanttTaskBarRow<Item: GanttTask>: View {
 
     private var taskStartOffset: CGFloat {
         let rangeStart = calendar.startOfDay(for: dateRange.lowerBound)
-        let taskStart = calendar.startOfDay(for: task.startDate)
+        let taskStart = calendar.startOfDay(for: task.taskStartDate)
         let days = calendar.dateComponents([.day], from: rangeStart, to: taskStart).day ?? 0
         return CGFloat(days) * configuration.dayColumnWidth
     }
 
     private var taskWidth: CGFloat {
-        let taskStart = calendar.startOfDay(for: task.startDate)
-        let taskEnd = calendar.startOfDay(for: task.endDate)
+        let taskStart = calendar.startOfDay(for: task.taskStartDate)
+        let taskEnd = calendar.startOfDay(for: task.taskEndDate)
         let days = calendar.dateComponents([.day], from: taskStart, to: taskEnd).day ?? 0
         return CGFloat(days + 1) * configuration.dayColumnWidth
     }

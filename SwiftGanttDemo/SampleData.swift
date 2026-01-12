@@ -6,8 +6,8 @@ struct DemoTask: GanttTask {
     let id: UUID
     var title: String
     var subtitle: String?
-    var startDate: Date
-    var endDate: Date
+    var taskStartDate: Date
+    var taskEndDate: Date
     var progress: Double
     var color: Color
 
@@ -15,16 +15,16 @@ struct DemoTask: GanttTask {
         id: UUID = UUID(),
         title: String,
         subtitle: String? = nil,
-        startDate: Date,
-        endDate: Date,
+        taskStartDate: Date,
+        taskEndDate: Date,
         progress: Double = 0.0,
         color: Color = .blue
     ) {
         self.id = id
         self.title = title
         self.subtitle = subtitle
-        self.startDate = startDate
-        self.endDate = endDate
+        self.taskStartDate = taskStartDate
+        self.taskEndDate = taskEndDate
         self.progress = progress
         self.color = color
     }
@@ -108,8 +108,8 @@ enum SampleData {
                 id: minimalTaskIdA,
                 title: "Task A",
                 subtitle: "First task",
-                startDate: start1,
-                endDate: end1,
+                taskStartDate: start1,
+                taskEndDate: end1,
                 progress: 0.75,
                 color: .blue
             ),
@@ -117,8 +117,8 @@ enum SampleData {
                 id: minimalTaskIdB,
                 title: "Task B",
                 subtitle: "Second task",
-                startDate: start2,
-                endDate: end2,
+                taskStartDate: start2,
+                taskEndDate: end2,
                 progress: 0.25,
                 color: .blue
             )
@@ -199,8 +199,8 @@ enum SampleData {
             id: id,
             title: title,
             subtitle: "\(formatDateRange(start: start, end: end)) • \(duration)d • \(location)",
-            startDate: start,
-            endDate: end,
+            taskStartDate: start,
+            taskEndDate: end,
             progress: progress,
             color: color
         )
@@ -331,8 +331,8 @@ enum SampleData {
             tasks.append(DemoTask(
                 title: title,
                 subtitle: "\(formatDateRange(start: start, end: end)) • \(duration)d • \(location)",
-                startDate: start,
-                endDate: end,
+                taskStartDate: start,
+                taskEndDate: end,
                 progress: min(1.0, max(0.0, progress)),
                 color: color
             ))

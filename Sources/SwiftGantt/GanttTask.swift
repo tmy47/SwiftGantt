@@ -10,10 +10,10 @@ public protocol GanttTask: Identifiable {
     var subtitle: String? { get }
 
     /// The start date of the task
-    var startDate: Date { get }
+    var taskStartDate: Date { get }
 
     /// The end date of the task
-    var endDate: Date { get }
+    var taskEndDate: Date { get }
 
     /// Progress of the task (0.0 to 1.0)
     var progress: Double { get }

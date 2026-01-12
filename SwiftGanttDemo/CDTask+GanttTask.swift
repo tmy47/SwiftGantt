@@ -33,11 +33,11 @@ extension CDTask: GanttTask {
         subtitle_
     }
 
-    public var startDate: Date {
+    public var taskStartDate: Date {
         startDate_ ?? Date()
     }
 
-    public var endDate: Date {
+    public var taskEndDate: Date {
         endDate_ ?? Date()
     }
 
