@@ -11,7 +11,7 @@ let package = Package(
     products: [
         .library(
             name: "SwiftGantt",
-            type: .dynamic,
+            type: .static,
             targets: ["SwiftGantt"]
         )
     ],
